@@ -25,7 +25,7 @@ export function App({ snapshot, dispatch, columns: columnsOverride }: AppProps):
   const columns = columnsOverride ?? stdout.columns
   return (
     <Box flexDirection="column">
-      <Header snapshot={snapshot} />
+      <Header snapshot={snapshot} columns={columns} />
       <Transcript nodes={snapshot.transcript} />
       {snapshot.notice === undefined ? null : <Text color="yellow">{snapshot.notice}</Text>}
       {snapshot.panel === null
