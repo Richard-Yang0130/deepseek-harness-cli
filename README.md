@@ -28,7 +28,7 @@ Install the official runtime first, then this terminal package:
 
 ```bash
 npm install -g @deepseek-ai/dsh
-npm install -g github:Richard-Yang0130/deepseek-harness-cli
+npm install -g https://github.com/Richard-Yang0130/deepseek-harness-cli/archive/refs/heads/main.tar.gz
 ```
 
 Start it from the project directory you want the agent to work in:
@@ -113,10 +113,10 @@ npm update -g deepseek-harness-cli
 npm uninstall -g deepseek-harness-cli
 ```
 
-For a GitHub installation, reinstall to update:
+For a GitHub installation, reinstall the archive to update:
 
 ```bash
-npm install -g github:Richard-Yang0130/deepseek-harness-cli
+npm install -g https://github.com/Richard-Yang0130/deepseek-harness-cli/archive/refs/heads/main.tar.gz
 ```
 
 The isolated profile remains under `$DSH_HOME/profiles/dsh-cli` (default `$HOME/.dsh/profiles/dsh-cli`) until you remove it yourself.

@@ -26,10 +26,10 @@
 
 ```bash
 npm install -g @deepseek-ai/dsh
-npm install -g github:Richard-Yang0130/deepseek-harness-cli
+npm install -g https://github.com/Richard-Yang0130/deepseek-harness-cli/archive/refs/heads/main.tar.gz
 ```
 
-如果本机已经安装了兼容版本的 dsh，第一行可以跳过。
+两条命令分别执行，一行一条。如果本机已经安装了兼容版本的 dsh，第一行可以跳过。
 
 进入希望 DeepSeek 操作的项目目录，然后直接输入：
 
@@ -165,7 +165,7 @@ dsh-cli
 GitHub 安装方式通过重新安装更新：
 
 ```bash
-npm install -g github:Richard-Yang0130/deepseek-harness-cli
+npm install -g https://github.com/Richard-Yang0130/deepseek-harness-cli/archive/refs/heads/main.tar.gz
 ```
 
 卸载终端命令：
