@@ -151,6 +151,9 @@ interface AgentPresetsLike {
   list(): Promise<readonly { readonly id: string; readonly trust: string; readonly broken?: string }[]>
   resolve(id?: string): Promise<{ readonly id: string }>
   mount(agentCtx: Context, id?: string): Promise<{ readonly id: string }>
+  read(id: string): Promise<string>
+  copy(from: string, id: string, name?: string): Promise<void>
+  remove(id: string): Promise<void>
 }
 
 interface SessionProjectionsLike {
@@ -288,7 +291,7 @@ class HarnessTerminalServices implements TuiServices {
         args,
       )
     }
-    if (line === '/presets') return await this.presetsText()
+    if (line === '/presets' || line.startsWith('/presets ')) return await this.presetsCommand(args)
     if (line === '/preset' || line.startsWith('/preset ')) {
       if (args === '') return 'Usage: /preset <preset-id>'
       await this.open(undefined, this.agent.session.header.cwd ?? process.cwd(), args)
@@ -506,6 +509,24 @@ class HarnessTerminalServices implements TuiServices {
       const state = preset.broken === undefined ? preset.trust : `broken: ${preset.broken}`
       return `${active} ${preset.id}  ${state}`
     }).join('\n')
+  }
+
+  private async presetsCommand(args: string): Promise<string> {
+    const presets = this.ctx.get('agentPresets') as AgentPresetsLike
+    if (args === '' || args === 'list') return await this.presetsText()
+    const read = /^read\s+(\S+)$/.exec(args)
+    if (read !== null) return await presets.read(read[1] as string)
+    const copy = /^copy\s+(\S+)\s+(\S+)(?:\s+([\s\S]+))?$/.exec(args)
+    if (copy !== null) {
+      await presets.copy(copy[1] as string, copy[2] as string, copy[3])
+      return `Copied preset ${copy[1]} to ${copy[2]}.`
+    }
+    const remove = /^remove\s+(\S+)$/.exec(args)
+    if (remove !== null) {
+      await presets.remove(remove[1] as string)
+      return `Removed preset ${remove[1]}.`
+    }
+    return 'Usage: /presets [list | read <id> | copy <from> <id> [name] | remove <id>]'
   }
 
   private async modelCommand(provider?: string, model?: string): Promise<string> {
