@@ -27,10 +27,10 @@ function ScreenshotApp(): React.JSX.Element {
         snapshot={snapshot}
         columns={100}
         bannerFacts={{
-          version: '0.1.5',
+          version: '0.1.6',
           latest: {
-            version: '0.1.5',
-            bullets: ['新增 Claude 风格双栏欢迎框', '启动时展示最新更新内容', '字符画替换为紧凑鲸鱼标识'],
+            version: '0.1.6',
+            bullets: ['欢迎框跟随终端宽度实时重绘'],
           },
         }}
       />

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.6 — 2026-08-14
+
+- Subscribe to terminal resize events so the welcome box, composer, and status line redraw with one current column width instead of leaving stale border fragments.
+
 ## 0.1.5 — 2026-08-14
 
 - Add a Claude Code-style bordered welcome panel with an embedded title rail and two-column layout.

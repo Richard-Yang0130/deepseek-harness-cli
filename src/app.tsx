@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box, Text, useStdout } from 'ink'
 import type { BannerFacts } from './banner-facts.js'
 import type { TuiControllerSnapshot } from './controller.js'
@@ -22,9 +22,23 @@ export interface AppProps {
   readonly bannerFacts?: BannerFacts
 }
 
-export function App({ snapshot, dispatch, columns: columnsOverride, bannerFacts }: AppProps): React.JSX.Element {
+function useTerminalColumns(columnsOverride: number | undefined): number {
   const { stdout } = useStdout()
-  const columns = columnsOverride ?? stdout.columns
+  const [terminalColumns, setTerminalColumns] = useState(stdout.columns)
+
+  useEffect(() => {
+    if (columnsOverride !== undefined) return
+    const updateColumns = (): void => { setTerminalColumns(stdout.columns) }
+    updateColumns()
+    stdout.prependListener('resize', updateColumns)
+    return () => { stdout.off('resize', updateColumns) }
+  }, [columnsOverride, stdout])
+
+  return columnsOverride ?? terminalColumns
+}
+
+export function App({ snapshot, dispatch, columns: columnsOverride, bannerFacts }: AppProps): React.JSX.Element {
+  const columns = useTerminalColumns(columnsOverride)
   return (
     <Box flexDirection="column">
       <Header snapshot={snapshot} columns={columns} {...bannerFacts === undefined ? {} : { bannerFacts }} />
