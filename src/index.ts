@@ -417,6 +417,19 @@ class HarnessTerminalServices implements TuiServices {
     await this.ctx.sessions.flush(this.agent.session)
   }
 
+  steer(text: string): void {
+    if (text === '') return
+    const content: ContentBlock[] = [
+      ...this.pendingImages.map(attachment => ({ type: 'image' as const, attachment })),
+      { type: 'text', text },
+    ]
+    this.agent.steer(createUserMessage({
+      content,
+      source: { kind: 'user' },
+    }))
+    this.pendingImages = []
+  }
+
   cancel(): void {
     if (this.handle?.agent.status === 'running') {
       this.handle.agent.cancel({ kind: 'user' })

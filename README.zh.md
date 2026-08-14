@@ -8,8 +8,10 @@
 
 - Ink 交互式终端界面，包含 Claude Code 风格欢迎框、紧凑 🐳 标识、快速上手提示和本次更新。
 - 输入 `/` 后，命令菜单从输入框向下展开；方向键选择，Enter 确认。
+- DeepSeek 工作期间可以继续输入消息，在下一步边界调整当前任务方向，不会另开一轮。
+- Todo 列表会在原位置实时更新，并区分等待、进行中和已完成状态。
 - 输入 `/subagents` 可查看子代理提供方和子会话状态。
-- 支持持久化会话、新建、恢复、重命名、全文检索、导出、工作区切换、图片附件、后台任务、Skills、子代理、审批、结构化提问、模型、凭据、Agent 预设、设置、插件、会话统计和消息反馈。
+- 支持持久化会话、新建、恢复、重命名、全文检索、导出、工作区切换、图片附件、后台任务、Skills、子代理、审批、结构化提问、模型、凭据、Agent 预设、设置、插件、MCP 工具、会话统计和消息反馈。
 - `/permission`、`/plan`、`/goal`、`/feedback`、工作流以及插件贡献的命令，直接使用 dsh 动态命令注册表，不做假实现。
 - 原有 `dsh web` 完整保留；终端版使用独立的 `dsh-cli` profile，互不覆盖。
 
@@ -52,6 +54,7 @@ dsh-cli doctor
 ## 基本操作
 
 - Enter：发送当前输入。
+- DeepSeek 工作期间按 Enter：把输入作为 steering 送入当前任务，不会启动第二轮。
 - `/`：在输入框下方打开命令菜单。
 - ↑ / ↓：选择命令；Enter：补全；Esc：关闭菜单。
 - `/subagents`：列出子代理提供方和子会话状态。
@@ -90,6 +93,49 @@ dsh-cli doctor
 ```
 
 完整说明见 [命令参考](docs/commands.md)、[Web → 终端能力映射](docs/capability-matrix.md) 和 [故障排查](docs/troubleshooting.md)。
+
+## 接入 MCP 服务器
+
+`dsh-cli` 可以加载官方 dsh 随附的 `@deepseek-ai/dsh-mcp-client`。默认不会启用任何服务器，因为 stdio MCP 服务器是在 Agent 沙箱之外运行的受信任进程。
+
+先启动一次 `dsh-cli`，让独立 profile 完成创建；退出后编辑：
+
+```text
+$DSH_HOME/profiles/dsh-cli/cordis.patch.yml
+```
+
+如果没有设置 `DSH_HOME`，默认路径是 `$HOME/.dsh`。该文件是 Cordis patch 数组。接入 stdio 服务器时添加一个实例：
+
+```yaml
+- insert:
+    - id: mcp-example
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: example
+        transport: stdio
+        command: npx
+        args: ['-y', 'your-mcp-server-package']
+        env:
+          MCP_TOKEN: !!js process.env.MCP_TOKEN
+```
+
+接入 Streamable HTTP 服务器时使用：
+
+```yaml
+- insert:
+    - id: mcp-example-http
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: example_http
+        transport: streamable-http
+        url: http://127.0.0.1:3000/mcp
+        headers:
+          Authorization: !!js '`Bearer ${process.env.MCP_TOKEN}`'
+```
+
+每个运行中的服务器都必须使用唯一的 `serverName`，格式为 `[A-Za-z0-9_-]{1,32}`。修改 patch 后要重启 `dsh-cli`，因为此 profile 禁用了热更新。发现的工具会以 `mcp__<serverName>__<tool>` 注册为 Harness 原生工具。`/plugins` 可以确认客户端实例是否加载，但目前没有 `/mcp` 命令，也不能在终端查看服务器健康状态。没有专用 presenter 的 MCP 调用会显示原始工具名和 JSON 参数。
+
+密钥应像示例一样从环境变量读取，不要把明文写入 YAML。初次连接失败时，默认的 `failOnStartupError: false` 会让 CLI 正常启动，只是不注册该服务器的工具。
 
 ## 凭据使用示例
 

@@ -18,6 +18,7 @@ export interface TuiServices {
   executeCommand(line: string, signal: AbortSignal): Promise<CommandResult | undefined>
   executeTerminalCommand(line: string): Promise<string | undefined>
   prompt(text: string): Promise<void>
+  steer?(text: string): void
   cancel(): void
   flush(): Promise<void>
   dispose(): Promise<void>
@@ -147,6 +148,15 @@ export class TuiController {
 
     this.notice = undefined
     const match = SLASH_COMMAND.exec(input)
+    if (this.phase === 'running') {
+      if (match !== null) {
+        this.notice = 'Slash commands are unavailable while DeepSeek is working.'
+        this.notify()
+        return
+      }
+      this.services.steer?.(input)
+      return
+    }
     if (match !== null) {
       const name = match[1]
       if (name === undefined) return

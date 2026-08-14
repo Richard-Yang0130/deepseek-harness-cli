@@ -7,13 +7,14 @@ import type { TuiCommand } from '../controller-types.js'
 import { initialInputState, reduceInput } from '../input-state.js'
 import { CommandMenu } from './CommandMenu.js'
 
-export function ctrlCIntent(disabled: boolean): AppIntent {
-  return { type: disabled ? 'cancel' : 'exit' }
+export function ctrlCIntent(running: boolean): AppIntent {
+  return { type: running ? 'cancel' : 'exit' }
 }
 
-export function Composer({ commands, disabled, dispatch }: {
+export function Composer({ commands, disabled, running, dispatch }: {
   readonly commands: readonly TuiCommand[]
   readonly disabled: boolean
+  readonly running: boolean
   readonly dispatch: (intent: AppIntent) => void
 }): React.JSX.Element {
   const [state, setState] = useState(initialInputState)
@@ -31,7 +32,7 @@ export function Composer({ commands, disabled, dispatch }: {
 
   const submit = (value: string): void => {
     const selected = filtered[state.selected]
-    if (state.menuOpen && selected !== undefined) {
+    if (!running && state.menuOpen && selected !== undefined) {
       if (selected.source === 'terminal' && selected.name === 'exit') {
         dispatch({ type: 'exit' })
         return
@@ -52,7 +53,7 @@ export function Composer({ commands, disabled, dispatch }: {
 
   useInput((input, key) => {
     if (key.ctrl && input === 'c') {
-      dispatch(ctrlCIntent(disabled))
+      dispatch(ctrlCIntent(running))
       return
     }
     if (key.ctrl && input === 'd') {
@@ -77,11 +78,11 @@ export function Composer({ commands, disabled, dispatch }: {
           value={state.value}
           onChange={(value) => { update({ type: 'change', value }) }}
           onSubmit={submit}
-          placeholder={disabled ? 'Working…' : 'Ask DeepSeek or type / for commands'}
+          placeholder={disabled ? 'Starting…' : running ? 'Steer DeepSeek…' : 'Ask DeepSeek or type / for commands'}
           focus={!disabled}
         />
       </Box>
-      {state.menuOpen ? <CommandMenu commands={filtered} selected={state.selected} /> : null}
+      {state.menuOpen && !running ? <CommandMenu commands={filtered} selected={state.selected} /> : null}
     </Box>
   )
 }

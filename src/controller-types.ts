@@ -1,3 +1,5 @@
+import type { TodoItem } from '@deepseek-ai/dsh-session'
+
 export type CommandSource = 'harness' | 'terminal' | 'skill'
 
 export interface TuiCommand {
@@ -19,6 +21,7 @@ export type TranscriptNode =
   | { readonly id: string; readonly kind: 'assistant'; readonly text: string }
   | { readonly id: string; readonly kind: 'notice'; readonly text: string }
   | { readonly id: string; readonly kind: 'error'; readonly text: string }
+  | { readonly id: string; readonly kind: 'todos'; readonly items: readonly TodoItem[] }
   | {
     readonly id: string
     readonly kind: 'tool'

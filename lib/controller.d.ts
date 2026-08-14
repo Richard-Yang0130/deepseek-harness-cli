@@ -11,6 +11,7 @@ export interface TuiServices {
     executeCommand(line: string, signal: AbortSignal): Promise<CommandResult | undefined>;
     executeTerminalCommand(line: string): Promise<string | undefined>;
     prompt(text: string): Promise<void>;
+    steer?(text: string): void;
     cancel(): void;
     flush(): Promise<void>;
     dispose(): Promise<void>;

@@ -37,4 +37,17 @@ describe('slash command composer', () => {
     expect(ctrlCIntent(false)).toEqual({ type: 'exit' })
     expect(ctrlCIntent(true)).toEqual({ type: 'cancel' })
   })
+
+  it('keeps the composer focused but suppresses the slash menu while running', async () => {
+    const view = render(
+      <App snapshot={{ ...snapshot, phase: 'running' }} dispatch={() => {}} />,
+    )
+
+    await new Promise(resolve => setTimeout(resolve, 0))
+    view.stdin.write('/')
+    await new Promise(resolve => setTimeout(resolve, 0))
+
+    expect(view.lastFrame()).toContain('❯ /')
+    expect(view.lastFrame()).not.toContain('/compact')
+  })
 })

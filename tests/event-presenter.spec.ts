@@ -60,4 +60,31 @@ describe('Ink event presenter', () => {
       id: 'workflow-workflow-1', kind: 'workflow', title: 'review', detail: '● Inspect tests', status: 'success',
     }])
   })
+
+  it('keeps only the latest todo list snapshot in its original transcript position', () => {
+    const first = presentSessionEvent([], event('todo/write', {
+      todos: [{ content: 'Inspect implementation', status: 'in_progress' }],
+    }))
+    const withLaterOutput = [...first, { id: 'later', kind: 'assistant', text: 'Working…' } as const]
+    const second = presentSessionEvent(withLaterOutput, event('todo/write', {
+      todos: [
+        { content: 'Inspect implementation', status: 'completed' },
+        { content: 'Add tests', status: 'pending' },
+      ],
+    }, 2))
+
+    expect(first).toEqual([{
+      id: 'todos', kind: 'todos', items: [{ content: 'Inspect implementation', status: 'in_progress' }],
+    }])
+    expect(second).toHaveLength(2)
+    expect(second[0]).toEqual({
+      id: 'todos',
+      kind: 'todos',
+      items: [
+        { content: 'Inspect implementation', status: 'completed' },
+        { content: 'Add tests', status: 'pending' },
+      ],
+    })
+    expect(second[1]).toEqual({ id: 'later', kind: 'assistant', text: 'Working…' })
+  })
 })

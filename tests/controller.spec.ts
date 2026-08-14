@@ -180,4 +180,44 @@ describe('TUI controller dispatch', () => {
     expect(prompts).toEqual([])
     expect(controller.snapshot().notice).toBe('Unknown command: /missing')
   })
+
+  it('steers an active agent turn without ending the running phase', async () => {
+    const prompt = Promise.withResolvers<void>()
+    const steered: string[] = []
+    const controller = new TuiController(services({
+      prompt: () => prompt.promise,
+      steer: text => { steered.push(text) },
+    }))
+
+    const activeTurn = controller.submit('start a long task')
+    expect(controller.snapshot().phase).toBe('running')
+
+    await controller.submit('focus on the tests first')
+    expect(steered).toEqual(['focus on the tests first'])
+    expect(controller.snapshot().phase).toBe('running')
+
+    prompt.resolve()
+    await activeTurn
+    expect(controller.snapshot().phase).toBe('idle')
+  })
+
+  it('rejects slash commands while an agent turn is running', async () => {
+    const prompt = Promise.withResolvers<void>()
+    const executed: string[] = []
+    const controller = new TuiController(services({
+      listCommands: () => [{ name: 'compact', description: 'Compact history' }],
+      executeCommand: (line) => { executed.push(line); return Promise.resolve(undefined) },
+      prompt: () => prompt.promise,
+    }))
+
+    const activeTurn = controller.submit('start a long task')
+    await controller.submit('/compact')
+
+    expect(executed).toEqual([])
+    expect(controller.snapshot().notice).toBe('Slash commands are unavailable while DeepSeek is working.')
+    expect(controller.snapshot().phase).toBe('running')
+
+    prompt.resolve()
+    await activeTurn
+  })
 })

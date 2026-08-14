@@ -45,7 +45,12 @@ export function App({ snapshot, dispatch, columns: columnsOverride, bannerFacts 
       <Transcript nodes={snapshot.transcript} />
       {snapshot.notice === undefined ? null : <Text color="yellow">{snapshot.notice}</Text>}
       {snapshot.panel === null
-        ? <Composer commands={snapshot.commands} disabled={snapshot.phase !== 'idle'} dispatch={dispatch} />
+        ? <Composer
+          commands={snapshot.commands}
+          disabled={snapshot.phase === 'starting' || snapshot.phase === 'stopping'}
+          running={snapshot.phase === 'running'}
+          dispatch={dispatch}
+        />
         : <DecisionPanel panel={snapshot.panel} dispatch={dispatch} />}
       <StatusLine snapshot={snapshot} columns={columns} />
     </Box>

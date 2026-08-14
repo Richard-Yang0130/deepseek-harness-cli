@@ -38,7 +38,30 @@ Type `/` to open the live menu. The menu merges three sources with deterministic
 
 Plugin configuration is represented by its registered settings namespace, so `/settings` is also the terminal editing surface for plugin configuration.
 
+### MCP client instances
+
+There is no `/mcp` command. Add one `@deepseek-ai/dsh-mcp-client` instance per server to `$DSH_HOME/profiles/dsh-cli/cordis.patch.yml`, then restart `dsh-cli`. The profile disables hot reload. A minimal patch has this shape:
+
+```yaml
+- insert:
+    - id: mcp-example
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: example
+        transport: stdio
+        command: npx
+        args: ['-y', 'your-mcp-server-package']
+```
+
+The client also supports `transport: streamable-http` with `url` and optional `headers`. Put credentials in environment variables and reference them with `!!js process.env.NAME`; do not store plaintext secrets in the patch. Every server needs a unique `serverName` matching `[A-Za-z0-9_-]{1,32}`. Its discovered tools are registered as `mcp__<serverName>__<tool>`.
+
+`/plugins` shows whether the MCP client instance loaded, but it does not report connection health or discovered tools. Calls without a specialized presenter render the raw MCP tool name and JSON arguments. Initial connection failure does not block startup by default (`failOnStartupError: false`).
+
 ## Interaction and execution
+
+Plain text submitted while a turn is running steers the active agent at its next step boundary. Slash commands are intentionally unavailable until the turn becomes idle; Ctrl+C still cancels the active turn.
+
+Durable `todo/write` updates render as one in-place list: `○` pending, `●` in progress, and `✓` completed.
 
 - `/attach <path>` — stage a PNG, JPEG, WebP, or GIF for the next prompt.
 - `/skills` — list user-invocable skills; discovered skill commands also appear in `/`.

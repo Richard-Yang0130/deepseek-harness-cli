@@ -54,6 +54,10 @@ export function presentSessionEvent(
     const id = `assistant-${event.data.turn}-${event.data.step}`
     return replaceNode(nodes, id, () => ({ id, kind: 'assistant', text }))
   }
+  if (event.type === 'todo/write') {
+    // Keep the last whole-list snapshot in place; see audit §P0-0.
+    return replaceNode(nodes, 'todos', () => ({ id: 'todos', kind: 'todos', items: event.data.todos }))
+  }
   if (event.type === 'tool/call') {
     const presentation = presentToolCall?.(event.data.name, event.data.arguments)
     return [...nodes, {
