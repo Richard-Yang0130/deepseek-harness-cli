@@ -45,6 +45,7 @@ export const inject = [
   'jobs',
   'llm',
   'messageFeedback',
+  'permissionPresets',
   'sessions',
   'sessionPersistence',
   'sessionQuery',
@@ -160,6 +161,10 @@ interface SessionProjectionsLike {
   snapshot(session: Agent['session']): { readonly values: Record<string, unknown> }
 }
 
+interface PermissionPresetsLike {
+  current(events: readonly SessionEvent[]): string
+}
+
 class HarnessTerminalServices implements TuiServices {
   private handle: AgentHandle | undefined
   private streaming = false
@@ -235,15 +240,12 @@ class HarnessTerminalServices implements TuiServices {
     permission: string
   } {
     const selected = this.selection?.current
-    const projections = this.ctx.get('sessionProjections') as SessionProjectionsLike | undefined
-    const permissions = this.handle === undefined
-      ? undefined
-      : projections?.snapshot(this.agent.session).values.permissions as { preset?: string } | undefined
+    const permissionPresets = this.ctx.get('permissionPresets') as PermissionPresetsLike
     return {
       cwd: this.handle?.agent.session.header.cwd ?? process.cwd(),
       ...(this.handle === undefined ? {} : { sessionId: this.agent.id }),
       ...(selected === undefined ? {} : { provider: selected.provider, model: selected.model }),
-      permission: permissions?.preset ?? 'approval',
+      permission: this.handle === undefined ? 'loading' : permissionPresets.current(this.agent.session.events),
     }
   }
 
