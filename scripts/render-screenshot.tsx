@@ -17,7 +17,7 @@ const commands = [
 
 const snapshot: TuiControllerSnapshot = {
   phase: 'idle', cwd: '/workspace/example-project', commands, transcript: [], panel: null,
-  subagents: ['reviewer'], provider: 'deepseek-official', model: 'deepseek-v4-pro',
+  provider: 'deepseek-official', model: 'deepseek-v4-pro',
   permission: 'workspace-write',
 }
 function ScreenshotApp(): React.JSX.Element {

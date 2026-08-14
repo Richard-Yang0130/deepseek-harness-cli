@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.4 — 2026-08-14
+
+- Redraw the DeepSeek whale from 34 to 46 terminal columns so it appears visibly longer with real monospace cell proportions.
+- Expand the whale header cell to prevent wrapping and use the compact text header below 82 columns.
+- Regenerate the public screenshot with synthetic workspace data only.
+
 ## 0.1.3 — 2026-08-14
 
 - Audit all 24 terminal commands against the public dsh services and make the dispatch table compile-time exhaustive.

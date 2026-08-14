@@ -1,6 +1,6 @@
 {
   "name": "deepseek-harness-cli",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "A Claude Code-style terminal interface for DeepSeek Harness",
   "type": "module",
   "license": "MIT",
