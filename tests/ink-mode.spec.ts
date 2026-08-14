@@ -6,6 +6,10 @@ import type { BannerFacts } from '../src/banner-facts.ts'
 import type { TuiControllerPort, TuiControllerSnapshot } from '../src/controller.ts'
 import * as inkMode from '../src/ink-mode.tsx'
 
+async function flushEffects(): Promise<void> {
+  await new Promise((resolve) => { setTimeout(resolve, 0) })
+}
+
 describe('Ink internals', () => {
   it('exposes replaceable render and stdout dependencies', () => {
     const inkInternals = (inkMode as { inkInternals?: unknown }).inkInternals
@@ -62,8 +66,10 @@ describe('ConnectedApp', () => {
       listener?.()
 
       await vi.waitFor(() => { expect(view.lastFrame()).toContain('Allow bash?') })
+      await flushEffects()
       view.stdin.write('\u001B[B')
       await vi.waitFor(() => { expect(view.lastFrame()).toContain('❯ ◉ Allow once') })
+      await flushEffects()
       view.stdin.write('\r')
       await vi.waitFor(() => {
         expect(answerDecision).toHaveBeenCalledWith({ type: 'answer-approval', outcome: 'allowed-once' })
