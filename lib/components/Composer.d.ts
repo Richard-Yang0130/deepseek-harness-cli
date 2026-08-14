@@ -2,9 +2,8 @@ import React from 'react';
 import type { AppIntent } from '../app.js';
 import type { TuiCommand } from '../controller-types.js';
 export declare function ctrlCIntent(disabled: boolean): AppIntent;
-export declare function Composer({ commands, subagents, disabled, dispatch }: {
+export declare function Composer({ commands, disabled, dispatch }: {
     readonly commands: readonly TuiCommand[];
-    readonly subagents?: readonly string[];
     readonly disabled: boolean;
     readonly dispatch: (intent: AppIntent) => void;
 }): React.JSX.Element;

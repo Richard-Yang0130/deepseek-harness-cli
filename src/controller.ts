@@ -14,7 +14,6 @@ export interface TuiServices {
   start?(resume?: string): Promise<void>
   listCommands(): readonly CommandDescriptor[]
   listSkills(): readonly LocalCommandDefinition[]
-  listSubagents?(): readonly string[]
   listTerminalCommands(): readonly LocalCommandDefinition[]
   executeCommand(line: string, signal: AbortSignal): Promise<CommandResult | undefined>
   executeTerminalCommand(line: string): Promise<string | undefined>
@@ -26,6 +25,7 @@ export interface TuiServices {
   subscribeEvents?(listener: (event: SessionEvent) => void): () => void
   subscribeCatalog?(listener: () => void): () => void
   connectDecisions?(handlers: TuiDecisionHandlers): () => void
+  presentEvent?(nodes: readonly TranscriptNode[], event: SessionEvent): readonly TranscriptNode[]
   details?(): {
     readonly cwd: string
     readonly sessionId?: string
@@ -48,9 +48,9 @@ export interface TuiControllerSnapshot {
   readonly model?: string
   readonly permission?: string
   readonly commands: readonly TuiCommand[]
-  readonly subagents: readonly string[]
   readonly transcript: readonly TranscriptNode[]
   readonly panel: DecisionPanelState | null
+  readonly exitRequested?: boolean
   readonly notice?: string
 }
 
@@ -82,6 +82,7 @@ export class TuiController {
   private disposeDecisions: (() => void) | undefined
   private panel: DecisionPanelState | null = null
   private pendingDecision: PendingDecision | undefined
+  private exitRequested = false
 
   constructor(private readonly services: TuiServices) {}
 
@@ -123,9 +124,9 @@ export class TuiController {
         this.services.listTerminalCommands(),
         this.services.listSkills(),
       ),
-      subagents: this.services.listSubagents?.() ?? [],
       transcript: this.transcript,
       panel: this.panel,
+      exitRequested: this.exitRequested,
       ...(this.notice === undefined ? {} : { notice: this.notice }),
     }
   }
@@ -160,10 +161,18 @@ export class TuiController {
         return
       }
       if (command.source === 'terminal') {
+        if (command.name === 'exit') {
+          this.exitRequested = true
+          this.notify()
+          return
+        }
         this.phase = 'running'
         this.notify()
         try {
+          const previousSessionId = this.services.details?.().sessionId
           const notice = await this.services.executeTerminalCommand(input)
+          const currentSessionId = this.services.details?.().sessionId
+          if (previousSessionId !== currentSessionId) this.reloadTranscript()
           if (notice !== undefined) this.notice = notice
         } finally {
           this.phase = 'idle'
@@ -232,7 +241,10 @@ export class TuiController {
     this.active = active
     try {
       const result = await this.services.executeCommand(line, active.signal)
-      if (result?.text !== undefined) this.notice = result.text
+      const shownByLifecycle = result?.text !== undefined && this.transcript.some(node => (
+        node.kind === 'command' && node.detail === result.text
+      ))
+      if (result?.text !== undefined && !shownByLifecycle) this.notice = result.text
     } finally {
       this.active = undefined
       this.phase = 'idle'
@@ -243,8 +255,15 @@ export class TuiController {
   private present(event: SessionEvent): void {
     if (this.eventSequences.has(event.seq)) return
     this.eventSequences.add(event.seq)
-    this.transcript = presentSessionEvent(this.transcript, event)
+    this.transcript = this.services.presentEvent?.(this.transcript, event)
+      ?? presentSessionEvent(this.transcript, event)
     this.notify()
+  }
+
+  private reloadTranscript(): void {
+    this.transcript = []
+    this.eventSequences.clear()
+    for (const event of this.services.events?.() ?? []) this.present(event)
   }
 
   private notify(): void {

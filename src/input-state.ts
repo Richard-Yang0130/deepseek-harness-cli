@@ -18,7 +18,7 @@ export function initialInputState(history: readonly string[] = []): InputState {
 
 export function reduceInput(state: InputState, action: InputAction, choices: number): InputState {
   if (action.type === 'change') {
-    const menuOpen = (action.value.startsWith('/') || action.value.startsWith('@')) && !/\s/.test(action.value)
+    const menuOpen = action.value.startsWith('/') && !/\s/.test(action.value)
     return { ...state, value: action.value, menuOpen, selected: 0 }
   }
   if (action.type === 'close-menu') return { ...state, menuOpen: false, selected: 0 }

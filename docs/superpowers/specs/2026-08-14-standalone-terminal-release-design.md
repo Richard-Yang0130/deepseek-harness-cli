@@ -39,7 +39,7 @@ On launch, the wrapper:
 
 The header uses a DeepSeek-blue Unicode whale with an 8-row by approximately 34-column footprint. It preserves the official icon's circular body, light belly, raised tail, and facial mark while appearing wider and flatter than the prior 10-row rendering. Product, model, and sanitized working-directory information sit to its right. Narrow layouts hide secondary fields before truncating primary state.
 
-The conversation transcript occupies the growing region. The composer and status line remain at the bottom. `/` opens a downward dynamic menu of live Harness commands, terminal commands, and user-invocable skills. `@` opens a downward list of running child Agents. Menus show at most eight rows and scroll around the selected item.
+The conversation transcript occupies the growing region. The composer and status line remain at the bottom. `/` opens a downward dynamic menu of live Harness commands, terminal commands, and user-invocable skills. The menu shows at most eight rows and scrolls around the selected item. `/subagents` reads the provider and child-session catalog without pretending to expose a host-user continuation API that dsh does not provide.
 
 Approvals, questions, model selection, settings, presets, plugins, jobs, sessions, and other structured operations use keyboard panels. Rich Web cards become expandable terminal text with the same identifiers, status, arguments, outputs, and failure state. Images are attached and persisted through Harness; the terminal shows metadata and paths rather than displaying bitmap pixels.
 
@@ -68,11 +68,11 @@ The package is divided into narrow units:
 
 - `launcher`: dsh discovery, version gate, profile bootstrap, argument forwarding, signals, and doctor output;
 - `controller`: active Agent lifecycle, immutable view snapshots, cancellation, persistence, and decision providers;
-- `catalog`: live command, skill, and subagent discovery with collision rules;
+- `catalog`: live command and skill discovery with collision rules;
 - `adapters`: one module per operational domain, calling public Harness services;
 - `presenter`: durable session events to stable terminal transcript nodes;
 - `ink`: presentation-only components that dispatch typed intents;
-- `line-mode`: non-TTY driver over the same controller;
+- `line-mode`: startup-task output driver over the same controller;
 - `privacy`: sanitization helpers used by fixtures, screenshots, logs, and release checks.
 
 The controller and adapters never import browser components or depend on HTTP transport. Ink components never mutate Harness state directly.
@@ -81,7 +81,7 @@ The controller and adapters never import browser components or depend on HTTP tr
 
 Unknown slash commands fail locally and never reach the model. Failed model or settings changes retain the previous value. A command removed from the live registry disappears from the open menu on the next update. Approval and question panels remain active until settled or cancelled.
 
-Ctrl+C cancels a running turn and exits while idle. Ctrl+D exits an empty composer. Exit flushes the session, disposes the Agent and registered providers, restores terminal modes, and forwards the appropriate process status. Non-TTY input uses line mode and preserves the same command dispatch and persistence semantics.
+Ctrl+C cancels a running turn and exits while idle. Ctrl+D exits an empty composer. Exit flushes the session, disposes the Agent and registered providers, restores terminal modes, and forwards the appropriate process status. A startup task in a non-TTY environment uses line mode and preserves the same command dispatch and persistence semantics.
 
 ## Documentation
 

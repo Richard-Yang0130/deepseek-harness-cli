@@ -7,7 +7,6 @@ export interface TuiServices {
     start?(resume?: string): Promise<void>;
     listCommands(): readonly CommandDescriptor[];
     listSkills(): readonly LocalCommandDefinition[];
-    listSubagents?(): readonly string[];
     listTerminalCommands(): readonly LocalCommandDefinition[];
     executeCommand(line: string, signal: AbortSignal): Promise<CommandResult | undefined>;
     executeTerminalCommand(line: string): Promise<string | undefined>;
@@ -19,6 +18,7 @@ export interface TuiServices {
     subscribeEvents?(listener: (event: SessionEvent) => void): () => void;
     subscribeCatalog?(listener: () => void): () => void;
     connectDecisions?(handlers: TuiDecisionHandlers): () => void;
+    presentEvent?(nodes: readonly TranscriptNode[], event: SessionEvent): readonly TranscriptNode[];
     details?(): {
         readonly cwd: string;
         readonly sessionId?: string;
@@ -42,9 +42,9 @@ export interface TuiControllerSnapshot {
     readonly model?: string;
     readonly permission?: string;
     readonly commands: readonly TuiCommand[];
-    readonly subagents: readonly string[];
     readonly transcript: readonly TranscriptNode[];
     readonly panel: DecisionPanelState | null;
+    readonly exitRequested?: boolean;
     readonly notice?: string;
 }
 export interface TuiControllerPort {
@@ -69,6 +69,7 @@ export declare class TuiController {
     private disposeDecisions;
     private panel;
     private pendingDecision;
+    private exitRequested;
     constructor(services: TuiServices);
     subscribe(listener: () => void): () => void;
     start(resume?: string): Promise<void>;
@@ -80,6 +81,7 @@ export declare class TuiController {
     stop(): Promise<void>;
     private executeHarnessCommand;
     private present;
+    private reloadTranscript;
     private notify;
     private requestApproval;
     private requestQuestions;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CallId } from '@deepseek-ai/dsh-llm'
+import { CallId, createToolResultMessage } from '@deepseek-ai/dsh-llm'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import { presentSessionEvent } from '../src/event-presenter.ts'
 
@@ -27,7 +27,37 @@ describe('Ink event presenter', () => {
     expect(presentSessionEvent([], event('tool/call', {
       turn: 1, step: 1, callId: CallId('call-1'), name: 'bash', arguments: '{"cmd":"pwd"}',
     }))).toEqual([{
-      id: 'tool-call-1', kind: 'tool', title: 'bash', detail: '{"cmd":"pwd"}', status: 'running',
+      id: 'tool-call-1', kind: 'tool', title: 'bash', detail: '{"cmd":"pwd"}', status: 'running', turn: 1,
+    }])
+  })
+
+  it('derives produced files from successful edit-tool presentation locations', () => {
+    const callId = CallId('call-edit')
+    const pending = presentSessionEvent([], event('tool/call', {
+      turn: 3, step: 1, callId, name: 'write', arguments: '{"path":"result.txt"}',
+    }), () => ({ title: 'Write result.txt', producedPaths: ['result.txt'] }))
+    const settled = presentSessionEvent(pending, event('tool/result', {
+      message: createToolResultMessage({ callId, content: [{ type: 'text', text: 'written' }] }),
+    }, 2))
+    expect(settled).toContainEqual({ id: 'deliverables-3', kind: 'deliverables', paths: ['result.txt'] })
+  })
+
+  it('folds durable workflow records into a settled workflow row', () => {
+    const start = {
+      type: 'tool-workflow/run-start', seq: 1, time: 1,
+      data: { runId: 'workflow-1', name: 'review' },
+    } as unknown as SessionEvent
+    const agent = {
+      type: 'tool-workflow/agent-start', seq: 2, time: 2,
+      data: { runId: 'workflow-1', seq: 1, label: 'Inspect tests', childId: 'session-child' },
+    } as unknown as SessionEvent
+    const end = {
+      type: 'tool-workflow/run-end', seq: 3, time: 3,
+      data: { runId: 'workflow-1', stopReason: 'completed' },
+    } as unknown as SessionEvent
+    const nodes = presentSessionEvent(presentSessionEvent(presentSessionEvent([], start), agent), end)
+    expect(nodes).toEqual([{
+      id: 'workflow-workflow-1', kind: 'workflow', title: 'review', detail: '● Inspect tests', status: 'success',
     }])
   })
 })

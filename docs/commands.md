@@ -5,11 +5,11 @@ Type `/` to open the live menu. The menu merges three sources with deterministic
 ## Session and workspace
 
 - `/new` — flush the current session and create a persisted session in the same directory.
-- `/sessions` — list persisted sessions, newest first.
-- `/sessions <query>` — full-text search current user and assistant messages through `SessionQueryEngine`. The dsh deployment must enable its search backend.
+- `/sessions` — list live and persisted sessions with their durable titles, newest first.
+- `/sessions <query>` — search current user and assistant messages through `SessionQueryEngine`. It uses ranked full-text search when enabled and automatically falls back to the provider-independent literal scan in the default `openAt: never` deployment.
 - `/resume <session-id>` — resume a persisted session and replay its visible history.
 - `/rename <title>` — append a durable user title through `SessionTitleService`.
-- `/workspace <path>` — create or resolve a workspace, start a session there, and attach the session.
+- `/workspace <path>` — resolve an existing directory as a workspace, start a session there, and attach the session.
 - `/trajectory` — list durable event sequence numbers and types.
 - `/stats` — show the `sessionStats` projection: turns, steps, model/tool time, TTFT, and decode figures.
 - `/export [path]` — write a ZIP containing this session, descendants, and referenced images.
@@ -42,7 +42,7 @@ Plugin configuration is represented by its registered settings namespace, so `/s
 
 - `/attach <path>` — stage a PNG, JPEG, WebP, or GIF for the next prompt.
 - `/skills` — list user-invocable skills; discovered skill commands also appear in `/`.
-- `/subagents` — list subagent providers. Type `@` in the composer to select a running child.
+- `/subagents` — list subagent providers and durable child sessions with mode and activity.
 - `/jobs`, `/job-read <id>`, `/job-kill <id>` — operate on background jobs.
 - `/message-feedback list` — list message feedback for the active session.
 - `/message-feedback put <message-id> <positive|negative> [note]` — compare-and-set feedback.

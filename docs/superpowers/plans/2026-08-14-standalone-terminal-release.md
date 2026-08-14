@@ -119,7 +119,7 @@ Expected: FAIL with missing source modules.
 
 - [ ] **Step 3: Port the validated TUI core from the terminal-ui feature commit**
 
-Preserve the renderer-neutral `TuiServices` boundary, immutable snapshots, dynamic command catalog, stable event presenter, input reducer, Ink decision panels, and non-TTY line mode. Replace workspace imports only with semver package imports; do not copy any upstream browser or host source.
+Preserve the renderer-neutral `TuiServices` boundary, immutable snapshots, dynamic command catalog, stable event presenter, input reducer, Ink decision panels, and startup-task line mode. Replace workspace imports only with semver package imports; do not copy any upstream browser or host source.
 
 - [ ] **Step 4: Run typecheck, lint, and focused tests**
 
@@ -338,7 +338,7 @@ git commit -m "docs: add complete usage and privacy-safe assets"
 
 - [ ] **Step 1: Add failing clean-prefix acceptance tests**
 
-The install test packs the project, installs it into a temporary npm prefix, places the deterministic fake dsh on PATH, runs `dsh-cli doctor`, launches twice, and asserts one bootstrap plus two profile launches. The PTY test types `/`, confirms the menu is below the composer, types `@`, checks the subagent panel, sends Ctrl+C, and verifies terminal restoration.
+The install test packs the project, installs it into a temporary npm prefix, places the deterministic fake dsh on PATH, runs `dsh-cli doctor`, launches twice, and asserts one bootstrap plus two profile launches. The PTY test types `/`, confirms the menu is below the composer, sends Ctrl+C, and verifies terminal restoration.
 
 - [ ] **Step 2: Run and verify acceptance failures**
 
@@ -394,6 +394,6 @@ Expected: public release URL returned.
 
 - [ ] **Step 5: Verify public installation instructions**
 
-Run the README's GitHub installation command in a temporary prefix, then `dsh-cli doctor` and one non-TTY `/exit` smoke test.
+Run the README's GitHub installation command in a temporary prefix, then `dsh-cli doctor` and one startup-task line-mode smoke test.
 
 Expected: installed executable resolves, doctor passes, profile boot exits zero, and no private data appears in output or repository files.

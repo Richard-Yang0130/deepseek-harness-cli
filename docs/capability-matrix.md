@@ -11,12 +11,12 @@ Both surfaces call the same underlying service; only presentation changes.
 | Permission | `/permission`, decision panel | `PermissionPresetService`, approval events | write |
 | Plan / goal | dynamic commands | `CommandRuntime` | write |
 | Agent presets | `/presets`, `/preset` | `AgentPresets` | read/write |
-| Sessions | `/new`, `/sessions`, `/resume` | `AgentFactory`, `SessionPersistence` | read/write |
-| Session search | `/sessions <query>` | `SessionQueryEngine.searchSessions` | read |
+| Sessions | `/new`, `/sessions`, `/resume` | `AgentFactory`, `SessionQueryEngine` | read/write |
+| Session search | `/sessions <query>` | `SessionQueryEngine.searchSessions/filterEvents` | read |
 | Session statistics | `/stats` | `SessionProjectionRegistry` | read |
 | Rename / export | `/rename`, `/export` | `SessionTitleService`, query + attachment storage | read/write |
 | Attachments | `/attach` | `AttachmentStore` | write |
-| Skills / subagents | `/skills`, `@`, `/subagents` | scoped registries | execute |
+| Skills / subagents | `/skills`, `/subagents` | scoped registries and child-session catalog | read/execute |
 | Tools / workflow / deliverables | transcript cards + dynamic commands | agent runtime and durable events | execute/read |
 | Approvals / questions | keyboard decision panels | approval and user-question providers | write |
 | Jobs | `/jobs`, `/job-read`, `/job-kill` | `JobsService` | read/write |

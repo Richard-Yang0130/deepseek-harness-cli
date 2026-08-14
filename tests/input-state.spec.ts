@@ -8,10 +8,9 @@ describe('input reducer', () => {
     expect(reduceInput(opened, { type: 'move', delta: -1 }, 3).selected).toBe(2)
   })
 
-  it('opens subagent discovery for an at reference', () => {
+  it('keeps an at reference as ordinary prompt text', () => {
     const opened = reduceInput(initialInputState(), { type: 'change', value: '@wor' }, 2)
-    expect(opened.menuOpen).toBe(true)
-    expect(reduceInput(opened, { type: 'change', value: '@worker ' }, 2).menuOpen).toBe(false)
+    expect(opened.menuOpen).toBe(false)
   })
 
   it('closes discovery for ordinary text and remembers submitted input', () => {

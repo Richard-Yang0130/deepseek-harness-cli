@@ -13,7 +13,6 @@ function snapshot(overrides: Partial<TuiControllerSnapshot> = {}): TuiController
     commands: [],
     transcript: [],
     panel: null,
-    subagents: [],
     sessionId: 'example-session',
     provider: 'deepseek-official',
     model: 'deepseek-v4-pro',

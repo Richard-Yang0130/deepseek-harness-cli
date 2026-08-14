@@ -1,7 +1,7 @@
 /** Interactive terminal driver over the same core Agent composition as Web. */
 import { randomUUID } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
-import { basename, extname } from 'node:path'
+import { basename, extname, isAbsolute, resolve as resolvePath } from 'node:path'
 import { createInterface } from 'node:readline/promises'
 import type { Context } from '@deepseek-ai/cordis'
 import { installModelSelection, type Agent, type AgentHandle, type ModelSelectionRef } from '@deepseek-ai/dsh-agent'
@@ -24,11 +24,12 @@ import { UserQuestionError, type AskUserQuestionRequest } from '@deepseek-ai/dsh
 import type {} from '@deepseek-ai/cordis-plugin-loader'
 import type {} from '@deepseek-ai/dsh-cmdline'
 import { TuiController, type TuiDecisionHandlers, type TuiServices } from './controller.js'
-import type { LocalCommandDefinition } from './controller-types.js'
+import type { LocalCommandDefinition, TranscriptNode } from './controller-types.js'
 import { runInkMode } from './ink-mode.js'
 import { runLineMode, type TerminalIo } from './line-mode.js'
 import { exportSessionArchive } from './export-session.js'
 import type { TuiStartupValues } from './startup.js'
+import { presentSessionEvent, type ToolCallPresentation } from './event-presenter.js'
 import { answerQuestions, parseTerminalInput, renderSessionEvent } from './terminal-ui.js'
 import {
   credentialsOperation, messageFeedbackOperation, modelsOperation, sessionSearchOperation, settingsOperation,
@@ -46,6 +47,7 @@ export const inject = [
   'llm',
   'messageFeedback',
   'permissionPresets',
+  'pluginInventory',
   'sessions',
   'sessionPersistence',
   'sessionQuery',
@@ -57,7 +59,7 @@ export const inject = [
   'workspaceRegistry',
 ]
 
-const TERMINAL_COMMANDS: readonly LocalCommandDefinition[] = [
+export const TERMINAL_COMMANDS = [
   { name: 'attach', description: 'Attach an image to the next prompt', source: 'terminal', hint: '<path>' },
   { name: 'credentials', description: 'Inspect or update credential references', source: 'terminal', hint: '<status|set|unset> …' },
   { name: 'exit', description: 'Quit the terminal session', source: 'terminal' },
@@ -82,7 +84,9 @@ const TERMINAL_COMMANDS: readonly LocalCommandDefinition[] = [
   { name: 'stats', description: 'Show whole-session usage and timing statistics', source: 'terminal' },
   { name: 'trajectory', description: 'Show the durable session event trajectory', source: 'terminal' },
   { name: 'workspace', description: 'Start a session in another workspace', source: 'terminal', hint: '<path>' },
-]
+] as const satisfies readonly LocalCommandDefinition[]
+
+type TerminalCommandName = (typeof TERMINAL_COMMANDS)[number]['name']
 
 const HELP = [
   'Terminal commands:',
@@ -98,6 +102,12 @@ const HELP = [
   '  /workspace <path>     start a session in another workspace',
   '  /attach <image>       attach an image to the next prompt',
   '  /jobs                 list background jobs',
+  '  /job-read <id>        read background job output',
+  '  /job-kill <id>        stop a background job',
+  '  /skills               list user-invocable skills',
+  '  /subagents            list subagent providers',
+  '  /stats                show session usage and timing statistics',
+  '  /trajectory           show durable session event types',
   '  /settings …           show or mutate settings through the settings service',
   '  /message-feedback …  list or change feedback for assistant messages',
   '  /plugins              list loaded plugins',
@@ -138,9 +148,38 @@ export const internals: {
   runInk: runInkMode,
 }
 
+export function restoredModelSelection(
+  session: Pick<Agent['session'], 'requestHeader'>,
+  fallback: NonNullable<ModelSelectionRef['current']>,
+): NonNullable<ModelSelectionRef['current']> {
+  const logged = session.requestHeader()?.config
+  return logged === undefined ? fallback : {
+    provider: logged.provider,
+    model: logged.model,
+    ...(logged.reasoningEffort === undefined ? {} : { reasoningEffort: logged.reasoningEffort }),
+  }
+}
+
 function modelSetup(ctx: Context): { ref: ModelSelectionRef; setup(agentCtx: Context): void } {
-  const ref: ModelSelectionRef = { current: ctx.agentDefaultModel.currentSelection(), assembled: undefined }
-  return { ref, setup: agentCtx => installModelSelection(agentCtx, ref) }
+  let agent: Agent | undefined
+  let picked: ModelSelectionRef['current']
+  const ref: ModelSelectionRef = {
+    get current() {
+      if (picked !== undefined) return picked
+      const fallback = ctx.agentDefaultModel.currentSelection()
+      return agent === undefined ? fallback : restoredModelSelection(agent.session, fallback)
+    },
+    set current(next) { picked = next },
+    assembled: undefined,
+  }
+  return {
+    ref,
+    setup: (agentCtx) => {
+      if (agentCtx.agent === undefined) throw new Error('tui-runner: agent setup has no scoped agent')
+      agent = agentCtx.agent
+      installModelSelection(agentCtx, ref)
+    },
+  }
 }
 
 function line(io: TerminalIo, text = ''): void {
@@ -165,6 +204,18 @@ interface PermissionPresetsLike {
   current(events: readonly SessionEvent[]): string
 }
 
+interface ToolRuntimeLike {
+  get(name: string, scope: unknown): {
+    presentCall?(args: unknown): {
+      readonly card: string
+      readonly title?: string
+      readonly kind?: string
+      readonly rawInput?: unknown
+      readonly locations?: readonly { readonly path: string }[]
+    } | undefined
+  } | undefined
+}
+
 class HarnessTerminalServices implements TuiServices {
   private handle: AgentHandle | undefined
   private streaming = false
@@ -174,7 +225,6 @@ class HarnessTerminalServices implements TuiServices {
   private readonly eventListeners = new Set<(event: SessionEvent) => void>()
   private decisions: TuiDecisionHandlers | undefined
   private pendingImages: ImageAttachmentRef[] = []
-  private subagentRefs: readonly string[] = []
   private presetId: string | undefined
 
   constructor(
@@ -209,10 +259,6 @@ class HarnessTerminalServices implements TuiServices {
     return TERMINAL_COMMANDS
   }
 
-  listSubagents(): readonly string[] {
-    return this.subagentRefs
-  }
-
   events(): readonly SessionEvent[] {
     return this.handle === undefined ? [] : this.agent.session.events
   }
@@ -230,6 +276,10 @@ class HarnessTerminalServices implements TuiServices {
   connectDecisions(handlers: TuiDecisionHandlers): () => void {
     if (!this.lineOutput) this.decisions = handlers
     return () => { this.decisions = undefined }
+  }
+
+  presentEvent(nodes: readonly TranscriptNode[], event: SessionEvent): readonly TranscriptNode[] {
+    return presentSessionEvent(nodes, event, (name, argumentsJson) => this.presentToolCall(name, argumentsJson))
   }
 
   details(): {
@@ -258,93 +308,98 @@ class HarnessTerminalServices implements TuiServices {
   }
 
   async executeTerminalCommand(line: string): Promise<string | undefined> {
-    const invocation = /^\/[^\s]+(?:\s+([\s\S]*))?$/.exec(line)
-    const args = invocation?.[1]?.trim() ?? ''
-    if (line === '/skills') {
-      return this.skillCommands.length === 0
-        ? 'No user-invocable skills.'
-        : this.skillCommands.map(skill => `/${skill.name}  ${skill.description}`).join('\n')
-    }
-    if (line === '/subagents') {
-      const providers = this.ctx.subagents.list()
-      return providers.length === 0 ? 'No subagent providers.' : providers.join('\n')
-    }
-    if (line === '/jobs') return this.jobsText()
-    if (line.startsWith('/job-read')) {
-      if (args === '') return 'Usage: /job-read <job-id>'
-      const result = this.ctx.jobs.read(JobId(args), this.agent)
-      return `${result.text}\n${this.formatJob(result.snapshot)}`.trim()
-    }
-    if (line.startsWith('/job-kill')) {
-      if (args === '') return 'Usage: /job-kill <job-id>'
-      return `Job ${args}: ${this.ctx.jobs.kill(JobId(args), this.agent, 'stopped from dsh-cli')}`
-    }
-    if (line === '/models') return await modelsOperation(this.ctx.llm)
-    if (line === '/credentials' || line.startsWith('/credentials ')) {
-      return await credentialsOperation(this.ctx.get('credentials') as CredentialsLike, args)
-    }
-    if (line === '/settings' || line.startsWith('/settings ')) {
-      return await settingsOperation(this.ctx.settings as unknown as SettingsLike, args)
-    }
-    if (line === '/message-feedback' || line.startsWith('/message-feedback ')) {
-      return await messageFeedbackOperation(
+    const invocation = /^\/([^\s]+)(?:\s+([\s\S]*))?$/.exec(line)
+    const command = TERMINAL_COMMANDS.find(candidate => candidate.name === invocation?.[1])
+    if (command === undefined) return undefined
+    const args = invocation?.[2]?.trim() ?? ''
+    const parsed = parseTerminalInput(line)
+    const name: TerminalCommandName = command.name
+    switch (name) {
+      case 'attach': return await this.attachImage(args)
+      case 'credentials': return await credentialsOperation(this.ctx.get('credentials') as CredentialsLike, args)
+      case 'exit': return undefined
+      case 'export': return `Exported ${await exportSessionArchive(this.ctx, this.agent, args)}`
+      case 'help': return HELP
+      case 'job-kill': {
+        if (args === '') return 'Usage: /job-kill <job-id>'
+        return `Job ${args}: ${this.ctx.jobs.kill(JobId(args), this.agent, 'stopped from dsh-cli')}`
+      }
+      case 'job-read': {
+        if (args === '') return 'Usage: /job-read <job-id>'
+        const result = this.ctx.jobs.read(JobId(args), this.agent)
+        return `${result.text}\n${this.formatJob(result.snapshot)}`.trim()
+      }
+      case 'jobs': return this.jobsText()
+      case 'model': {
+        if (parsed.kind !== 'model') throw new Error('invalid /model invocation')
+        return await this.modelCommand(parsed.provider, parsed.model)
+      }
+      case 'models': return await modelsOperation(this.ctx.llm)
+      case 'message-feedback': return await messageFeedbackOperation(
         this.ctx.get('messageFeedback') as MessageFeedbackLike,
         this.agent.id,
         args,
+        this.agent.session.events.flatMap(event => event.type === 'assistant/message' ? [String(event.data.message.id)] : []),
       )
+      case 'new': {
+        await this.open(undefined, this.agent.session.header.cwd ?? process.cwd())
+        return undefined
+      }
+      case 'plugins': {
+        const inventory = this.ctx.get('pluginInventory') as PluginInventoryGateway | undefined
+        return inventory === undefined ? 'Plugin inventory is not mounted.' : JSON.stringify(inventory.list(), null, 2)
+      }
+      case 'preset': {
+        if (args === '') return 'Usage: /preset <preset-id>'
+        await this.open(undefined, this.agent.session.header.cwd ?? process.cwd(), args)
+        return `Agent preset: ${this.presetId}`
+      }
+      case 'presets': return await this.presetsCommand(args)
+      case 'rename': {
+        if (parsed.kind !== 'rename' || parsed.title === '') return 'Usage: /rename <title>'
+        const renamed = this.ctx.sessionTitle.rename(this.agent.session, parsed.title)
+        await this.ctx.sessions.flush(this.agent.session)
+        return `Session title: ${renamed.title}`
+      }
+      case 'resume': {
+        if (parsed.kind !== 'resume' || parsed.sessionId === '') return 'Usage: /resume <session-id>'
+        await this.open(parsed.sessionId)
+        return undefined
+      }
+      case 'sessions': return args === '' ? await this.sessionsText() : await sessionSearchOperation(this.ctx.sessionQuery, args)
+      case 'settings': return await settingsOperation(this.ctx.settings as unknown as SettingsLike, args)
+      case 'skills': return this.skillCommands.length === 0
+        ? 'No user-invocable skills.'
+        : this.skillCommands.map(skill => `/${skill.name}  ${skill.description}`).join('\n')
+      case 'subagents': {
+        const providers = this.ctx.subagents.list()
+        const children = await this.ctx.subagents.listChildren(this.agent.id)
+        const providerText = providers.length === 0 ? 'Providers: none' : `Providers: ${providers.join(', ')}`
+        const childText = children.length === 0
+          ? 'Children: none'
+          : ['Children:', ...children.map((child) => child.kind === 'diagnostic'
+            ? `- ${child.id}  diagnostic/${child.reason}`
+            : `- ${child.label ?? child.id}  ${child.mode}/${child.activity}  ${child.id}`)].join('\n')
+        return `${providerText}\n${childText}`
+      }
+      case 'stats': {
+        const projections = this.ctx.get('sessionProjections') as SessionProjectionsLike
+        const stats = projections.snapshot(this.agent.session).values.sessionStats
+        return stats === undefined ? 'Session statistics are not mounted.' : JSON.stringify(stats, null, 2)
+      }
+      case 'trajectory': return this.agent.session.events.map(event => `${event.seq}\t${event.type}`).join('\n') || 'No session events.'
+      case 'workspace': {
+        if (parsed.kind !== 'workspace' || parsed.path === '') return 'Usage: /workspace <path>'
+        const workspace = await this.ctx.workspaceRegistry.create(parsed.path)
+        await this.open(undefined, workspace.path)
+        await workspace.attachSession(this.agent.id)
+        return `Workspace: ${workspace.path}`
+      }
+      default: {
+        const exhaustive: never = name
+        return exhaustive
+      }
     }
-    if (line === '/presets' || line.startsWith('/presets ')) return await this.presetsCommand(args)
-    if (line === '/preset' || line.startsWith('/preset ')) {
-      if (args === '') return 'Usage: /preset <preset-id>'
-      await this.open(undefined, this.agent.session.header.cwd ?? process.cwd(), args)
-      return `Agent preset: ${this.presetId}`
-    }
-    if (line === '/stats') {
-      const projections = this.ctx.get('sessionProjections') as SessionProjectionsLike
-      const stats = projections.snapshot(this.agent.session).values.sessionStats
-      return stats === undefined ? 'Session statistics are not mounted.' : JSON.stringify(stats, null, 2)
-    }
-    if (line.startsWith('/sessions ')) {
-      return await sessionSearchOperation(this.ctx.sessionQuery, args)
-    }
-    if (line === '/plugins') {
-      const inventory = this.ctx.get('pluginInventory') as PluginInventoryGateway | undefined
-      return inventory === undefined ? 'Plugin inventory is not mounted.' : JSON.stringify(inventory.list(), null, 2)
-    }
-    if (line === '/trajectory') {
-      return this.agent.session.events.map(event => `${event.seq}\t${event.type}`).join('\n') || 'No session events.'
-    }
-    if (line === '/export' || line.startsWith('/export ')) {
-      return `Exported ${await exportSessionArchive(this.ctx, this.agent, args)}`
-    }
-    if (line.startsWith('/attach')) return await this.attachImage(args)
-    const command = parseTerminalInput(line)
-    if (command.kind === 'help') return HELP
-    if (command.kind === 'new') {
-      await this.open(undefined, this.agent.session.header.cwd ?? process.cwd())
-      return undefined
-    }
-    if (command.kind === 'sessions') return await this.sessionsText()
-    if (command.kind === 'resume') {
-      if (command.sessionId === '') return 'Usage: /resume <session-id>'
-      await this.open(command.sessionId)
-      return undefined
-    }
-    if (command.kind === 'model') return await this.modelCommand(command.provider, command.model)
-    if (command.kind === 'rename') {
-      if (command.title === '') return 'Usage: /rename <title>'
-      const renamed = this.ctx.sessionTitle.rename(this.agent.session, command.title)
-      await this.ctx.sessions.flush(this.agent.session)
-      return `Session title: ${renamed.title}`
-    }
-    if (command.kind === 'workspace') {
-      if (command.path === '') return 'Usage: /workspace <path>'
-      const workspace = await this.ctx.workspaceRegistry.create(command.path)
-      await this.open(undefined, workspace.path)
-      await workspace.attachSession(this.agent.id)
-      return `Workspace: ${workspace.path}`
-    }
-    return undefined
   }
 
   async prompt(text: string): Promise<void> {
@@ -359,7 +414,6 @@ class HarnessTerminalServices implements TuiServices {
     }))
     this.pendingImages = []
     await this.agent.whenIdle()
-    await this.refreshSubagents()
     await this.ctx.sessions.flush(this.agent.session)
   }
 
@@ -412,20 +466,17 @@ class HarnessTerminalServices implements TuiServices {
   }
 
   private async open(resume?: string, cwd = process.cwd(), requestedPreset?: string): Promise<void> {
-    await this.handle?.dispose()
     const model = modelSetup(this.ctx)
-    this.selection = model.ref
     const presets = this.ctx.get('agentPresets') as AgentPresetsLike
     const resumeMeta = resume === undefined
       ? undefined
       : (await this.ctx.sessionPersistence.inspect(SessionId(resume))).meta as { agentPreset?: string }
     const resolvedPreset = await presets.resolve(requestedPreset ?? resumeMeta?.agentPreset)
-    this.presetId = resolvedPreset.id
     const setup = async (agentCtx: Context): Promise<void> => {
       model.setup(agentCtx)
       await presets.mount(agentCtx, resolvedPreset.id)
     }
-    this.handle = resume === undefined
+    const nextHandle = resume === undefined
       ? await this.ctx.agents.create({
         sessionId: SessionId(`session-${randomUUID()}`),
         meta: { cwd, agentPreset: resolvedPreset.id },
@@ -437,9 +488,13 @@ class HarnessTerminalServices implements TuiServices {
         agentOptions: this.ctx.agentDefaultModel.currentSelection(),
         setup,
       })
-    await this.agent.whenIdle()
+    await nextHandle.agent.whenIdle()
+    await this.handle?.dispose()
+    this.handle = nextHandle
+    this.selection = model.ref
+    this.presetId = resolvedPreset.id
+    this.pendingImages = []
     await this.refreshSkills()
-    await this.refreshSubagents()
     if (resume !== undefined) {
       if (this.lineOutput) {
         line(this.io, `Resumed ${this.agent.id}`)
@@ -456,7 +511,10 @@ class HarnessTerminalServices implements TuiServices {
       this.skillCommands = []
       return
     }
-    const skills = await registry.list({ cwd: process.cwd(), scope: scopeOf(this.agent.ctx) })
+    const skills = await registry.list({
+      cwd: this.agent.session.header.cwd ?? process.cwd(),
+      scope: scopeOf(this.agent.ctx),
+    })
     this.skillCommands = skills.filter(isUserInvocable).map(skill => ({
       name: skill.name,
       description: skill.description,
@@ -464,12 +522,24 @@ class HarnessTerminalServices implements TuiServices {
     }))
   }
 
-  private async refreshSubagents(): Promise<void> {
-    const children = await this.ctx.subagents.listChildren(this.agent.id)
-    this.subagentRefs = children.flatMap((child) => {
-      if (child.kind !== 'child' || child.activity !== 'running') return []
-      return [child.label ?? String(child.id)]
-    })
+  private presentToolCall(name: string, argumentsJson: string): ToolCallPresentation | undefined {
+    try {
+      const runtime = this.agent.ctx.get('tools') as ToolRuntimeLike | undefined
+      const view = runtime?.get(name, scopeOf(this.agent.ctx))?.presentCall?.(JSON.parse(argumentsJson))
+      if (view === undefined) return undefined
+      const locations = view.locations?.map(location => location.path) ?? []
+      const mutatesFiles = view.card === 'diff' || (view.card === 'generic' && view.kind === 'edit')
+      const detail = view.rawInput === undefined
+        ? undefined
+        : typeof view.rawInput === 'string' ? view.rawInput : JSON.stringify(view.rawInput)
+      return {
+        ...(view.title === undefined ? {} : { title: view.title }),
+        ...(detail === undefined ? {} : { detail }),
+        ...(mutatesFiles && locations.length > 0 ? { producedPaths: locations } : {}),
+      }
+    } catch {
+      return undefined
+    }
   }
 
   private render(event: SessionEvent, replay = false): void {
@@ -495,11 +565,17 @@ class HarnessTerminalServices implements TuiServices {
   }
 
   private async sessionsText(): Promise<string> {
-    const sessions = await this.ctx.sessionPersistence.list()
-    if (sessions.length === 0) return 'No persisted sessions.'
-    return sessions.sort((left, right) => right.createdAt - left.createdAt).map((session) => {
-      const active = session.id === this.agent.id ? '*' : ' '
-      return `${active} ${session.id}  ${new Date(session.createdAt).toLocaleString()}  ${session.cwd ?? ''}`.trimEnd()
+    const sessions = await this.ctx.sessionQuery.listSessions()
+    if (sessions.length === 0) return 'No sessions.'
+    const titles = await this.ctx.sessionQuery.readTitleSnapshots(sessions.map(session => session.header.id))
+    const titleById = new Map(titles.flatMap((result) => {
+      if (result.status !== 'fulfilled' || result.value.title === undefined) return []
+      return [[String(result.sessionId), result.value.title.title] as const]
+    }))
+    return sessions.map(({ header }) => {
+      const active = header.id === this.agent.id ? '*' : ' '
+      const title = titleById.get(String(header.id))
+      return `${active} ${header.id}  ${new Date(header.createdAt).toLocaleString()}${title === undefined ? '' : `  ${title}`}  ${header.cwd ?? ''}`.trimEnd()
     }).join('\n')
   }
 
@@ -562,13 +638,14 @@ class HarnessTerminalServices implements TuiServices {
     }
     const mediaType = mediaTypes[extname(path).toLowerCase()]
     if (mediaType === undefined) return 'Supported image types: png, jpg, jpeg, webp, gif.'
+    const sourcePath = isAbsolute(path) ? path : resolvePath(this.agent.session.header.cwd ?? process.cwd(), path)
     const attachment = await this.ctx.attachments.saveImage({
-      data: await readFile(path),
+      data: await readFile(sourcePath),
       mediaType,
-      name: basename(path),
+      name: basename(sourcePath),
     })
     this.pendingImages.push(attachment)
-    return `Attached ${basename(path)} to the next prompt.`
+    return `Attached ${basename(sourcePath)} to the next prompt.`
   }
 }
 

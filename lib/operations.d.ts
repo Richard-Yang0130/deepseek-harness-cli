@@ -64,7 +64,7 @@ export interface MessageFeedbackLike {
 export declare function modelsOperation(llm: LlmCatalogLike): Promise<string>;
 export declare function settingsOperation(settings: SettingsLike, input: string): Promise<string>;
 export declare function credentialsOperation(credentials: CredentialsLike, input: string, env?: NodeJS.ProcessEnv): Promise<string>;
-export declare function messageFeedbackOperation(feedback: MessageFeedbackLike, sessionId: string, input: string): Promise<string>;
+export declare function messageFeedbackOperation(feedback: MessageFeedbackLike, sessionId: string, input: string, assistantMessageIds?: readonly string[]): Promise<string>;
 export declare function sessionSearchOperation(query: {
     searchSessions(request: unknown): Promise<{
         readonly items: readonly {
@@ -76,6 +76,17 @@ export declare function sessionSearchOperation(query: {
             };
         }[];
     }>;
+    listSessions(): Promise<readonly {
+        readonly header: {
+            readonly id: string;
+        };
+    }[]>;
+    filterEvents(sessionId: never, filters: readonly unknown[]): Promise<readonly {
+        readonly text: string;
+    }[]>;
+    readTitle(sessionId: never): Promise<{
+        readonly title: string;
+    } | undefined>;
 }, text: string): Promise<string>;
 export {};
 //# sourceMappingURL=operations.d.ts.map

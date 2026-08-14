@@ -10,7 +10,6 @@ const snapshot: TuiControllerSnapshot = {
   cwd: '/work',
   transcript: [],
   panel: null,
-  subagents: [],
   commands: [
     { name: 'compact', description: 'Compact history', source: 'harness' },
     { name: 'goal', description: 'Set a goal', hint: '[objective]', source: 'harness' },
@@ -32,20 +31,6 @@ describe('slash command composer', () => {
     view.stdin.write('\r')
     await new Promise(resolve => setTimeout(resolve, 0))
     expect(dispatched).toContainEqual({ type: 'complete-command', value: '/goal ' })
-  })
-
-  it('opens a downward subagent menu and completes the selected reference', async () => {
-    const dispatched: AppIntent[] = []
-    const view = render(<App snapshot={{ ...snapshot, subagents: ['worker'] }} dispatch={intent => dispatched.push(intent)} />)
-    await new Promise(resolve => setTimeout(resolve, 0))
-    view.stdin.write('@')
-    await new Promise(resolve => setTimeout(resolve, 0))
-    const frame = view.lastFrame() ?? ''
-    expect(frame).toContain('@worker')
-    expect(frame.indexOf('❯ @')).toBeLessThan(frame.indexOf('@worker'))
-    view.stdin.write('\t')
-    await new Promise(resolve => setTimeout(resolve, 0))
-    expect(dispatched).toContainEqual({ type: 'complete-command', value: '@worker ' })
   })
 
   it('exits on Ctrl+C while idle and cancels while running', () => {

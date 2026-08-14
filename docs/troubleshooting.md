@@ -41,7 +41,7 @@ If the profile was manually edited and is no longer recoverable, move `$DSH_HOME
 
 ## Session search is unavailable
 
-The official base profile keeps full-text SQLite search disabled unless the deployment opts in. Listing, resume, rename, and exact reads still work. Enable the session-query backend in the dsh profile patch if full-text search is required.
+The official base profile keeps ranked SQLite full-text search disabled unless the deployment opts in. `dsh-cli` automatically falls back to `SessionQueryEngine.filterEvents`, which performs a case-insensitive literal scan. Enable the SQLite backend only when ranking and indexed search are required.
 
 ## Terminal is too narrow
 

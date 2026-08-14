@@ -25,6 +25,8 @@ export type TranscriptNode =
     readonly title: string
     readonly detail: string
     readonly status: 'running' | 'success' | 'error'
+    readonly turn?: number
+    readonly producedPaths?: readonly string[]
   }
   | {
     readonly id: string

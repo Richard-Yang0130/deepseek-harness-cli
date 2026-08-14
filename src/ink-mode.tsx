@@ -10,6 +10,9 @@ function ConnectedApp({ controller, requestExit }: {
 }): React.JSX.Element {
   const [snapshot, setSnapshot] = useState<TuiControllerSnapshot>(() => controller.snapshot())
   useEffect(() => controller.subscribe(() => { setSnapshot(controller.snapshot()) }), [controller])
+  useEffect(() => {
+    if (snapshot.exitRequested === true) requestExit()
+  }, [requestExit, snapshot.exitRequested])
 
   const dispatch = (intent: AppIntent): void => {
     if (intent.type === 'submit') {

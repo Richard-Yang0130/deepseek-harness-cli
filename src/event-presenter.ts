@@ -2,6 +2,12 @@ import type { ContentBlock } from '@deepseek-ai/dsh-llm'
 import type { SessionEvent } from '@deepseek-ai/dsh-session'
 import type { TranscriptNode } from './controller-types.js'
 
+export interface ToolCallPresentation {
+  readonly title?: string
+  readonly detail?: string
+  readonly producedPaths?: readonly string[]
+}
+
 function textOf(blocks: readonly ContentBlock[]): string {
   return blocks.map((block) => {
     if (block.type === 'text') return block.text
@@ -26,6 +32,7 @@ function replaceNode(
 export function presentSessionEvent(
   nodes: readonly TranscriptNode[],
   event: SessionEvent,
+  presentToolCall?: (name: string, argumentsJson: string) => ToolCallPresentation | undefined,
 ): readonly TranscriptNode[] {
   if (event.type === 'assistant/chunk') {
     const chunk = event.data.chunk
@@ -48,22 +55,40 @@ export function presentSessionEvent(
     return replaceNode(nodes, id, () => ({ id, kind: 'assistant', text }))
   }
   if (event.type === 'tool/call') {
+    const presentation = presentToolCall?.(event.data.name, event.data.arguments)
     return [...nodes, {
       id: `tool-${event.data.callId}`,
       kind: 'tool',
-      title: event.data.name,
-      detail: event.data.arguments,
+      title: presentation?.title ?? event.data.name,
+      detail: presentation?.detail ?? event.data.arguments,
       status: 'running',
+      turn: event.data.turn,
+      ...(presentation?.producedPaths === undefined ? {} : { producedPaths: presentation.producedPaths }),
     }]
   }
   if (event.type === 'tool/result') {
     const id = `tool-${event.data.message.content[0].toolCallId}`
-    return replaceNode(nodes, id, existing => ({
+    const existing = nodes.find(node => node.id === id)
+    const updated = replaceNode(nodes, id, current => ({
       id,
       kind: 'tool',
-      title: existing?.kind === 'tool' ? existing.title : 'tool',
+      title: current?.kind === 'tool' ? current.title : 'tool',
       detail: textOf(event.data.message.content),
       status: event.data.error === undefined ? 'success' : 'error',
+      ...(current?.kind !== 'tool' || current.turn === undefined ? {} : { turn: current.turn }),
+      ...(current?.kind !== 'tool' || current.producedPaths === undefined ? {} : { producedPaths: current.producedPaths }),
+    }))
+    if (event.data.error !== undefined || existing?.kind !== 'tool' || existing.producedPaths === undefined || existing.turn === undefined) {
+      return updated
+    }
+    const deliverableId = `deliverables-${existing.turn}`
+    return replaceNode(updated, deliverableId, current => ({
+      id: deliverableId,
+      kind: 'deliverables',
+      paths: [...new Set([
+        ...(current?.kind === 'deliverables' ? current.paths : []),
+        ...existing.producedPaths ?? [],
+      ])],
     }))
   }
   if (event.type === 'command/run') {
@@ -83,6 +108,49 @@ export function presentSessionEvent(
       title: existing?.kind === 'command' ? existing.title : 'command',
       detail: event.data.text ?? (existing?.kind === 'command' ? existing.detail : ''),
       status: event.data.kind,
+    }))
+  }
+  const eventType = String(event.type)
+  const data = event.data as unknown as Record<string, unknown>
+  if (eventType === 'tool-workflow/run-start') {
+    return [...nodes, {
+      id: `workflow-${String(data.runId)}`,
+      kind: 'workflow',
+      title: String(data.name),
+      detail: '',
+      status: 'running',
+    }]
+  }
+  if (eventType === 'tool-workflow/agent-start') {
+    const id = `workflow-${String(data.runId)}`
+    const label = `${String(data.label)}${data.phase === undefined ? '' : ` (${String(data.phase)})`}`
+    return replaceNode(nodes, id, current => ({
+      id,
+      kind: 'workflow',
+      title: current?.kind === 'workflow' ? current.title : 'Workflow',
+      detail: [current?.kind === 'workflow' ? current.detail : '', `● ${label}`].filter(Boolean).join('\n'),
+      status: 'running',
+    }))
+  }
+  if (eventType === 'tool-workflow/agent-end') {
+    const id = `workflow-${String(data.runId)}`
+    return replaceNode(nodes, id, current => ({
+      id,
+      kind: 'workflow',
+      title: current?.kind === 'workflow' ? current.title : 'Workflow',
+      detail: [current?.kind === 'workflow' ? current.detail : '', `agent ${String(data.seq)}: ${String(data.outcome)}`].filter(Boolean).join('\n'),
+      status: 'running',
+    }))
+  }
+  if (eventType === 'tool-workflow/run-end') {
+    const id = `workflow-${String(data.runId)}`
+    const stopReason = String(data.stopReason)
+    return replaceNode(nodes, id, current => ({
+      id,
+      kind: 'workflow',
+      title: current?.kind === 'workflow' ? current.title : 'Workflow',
+      detail: current?.kind === 'workflow' ? current.detail : '',
+      status: stopReason === 'completed' ? 'success' : 'error',
     }))
   }
   return nodes

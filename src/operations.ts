@@ -111,12 +111,21 @@ export async function messageFeedbackOperation(
   feedback: MessageFeedbackLike,
   sessionId: string,
   input: string,
+  assistantMessageIds: readonly string[] = [],
 ): Promise<string> {
   const args = input.trim()
   const current = await feedback.list({ sessionId: sessionId as never })
   if (!current.ok) return feedbackFailure(current)
   if (args === '' || args === 'list') {
-    return current.value.items.length === 0 ? 'No message feedback.' : JSON.stringify(current.value.items, null, 2)
+    const ids = [...new Set([
+      ...assistantMessageIds,
+      ...current.value.items.map(item => item.messageId),
+    ])]
+    return ids.length === 0 ? 'No assistant messages in this session.' : ids.map((messageId) => {
+      const item = current.value.items.find(candidate => candidate.messageId === messageId)
+      if (item === undefined) return `${messageId}  unrated`
+      return `${messageId}  ${item.rating ?? 'rated'}${item.note === undefined ? '' : `  ${item.note}`}`
+    }).join('\n')
   }
   const put = /^put\s+(\S+)\s+(positive|negative)(?:\s+([\s\S]+))?$/.exec(args)
   if (put !== null) {
@@ -147,18 +156,43 @@ export async function messageFeedbackOperation(
 }
 
 export async function sessionSearchOperation(
-  query: { searchSessions(request: unknown): Promise<{ readonly items: readonly { readonly header: { readonly id: string }; readonly bestMatch: { readonly snippet: string } }[] }> },
+  query: {
+    searchSessions(request: unknown): Promise<{ readonly items: readonly { readonly header: { readonly id: string }; readonly bestMatch: { readonly snippet: string } }[] }>
+    listSessions(): Promise<readonly { readonly header: { readonly id: string } }[]>
+    filterEvents(sessionId: never, filters: readonly unknown[]): Promise<readonly { readonly text: string }[]>
+    readTitle(sessionId: never): Promise<{ readonly title: string } | undefined>
+  },
   text: string,
 ): Promise<string> {
-  const page = await query.searchSessions({
-    query: text,
-    eventFilters: [
+  try {
+    const page = await query.searchSessions({
+      query: text,
+      eventFilters: [
+        { kind: 'type', values: ['user/message', 'assistant/message'] },
+        { kind: 'surface', values: ['current'] },
+      ],
+      limit: 20,
+    })
+    return page.items.length === 0 ? 'No matching sessions.' : page.items
+      .map(hit => `${hit.header.id}  ${hit.bestMatch.snippet.replace(/\s+/g, ' ').trim()}`)
+      .join('\n')
+  } catch (error: unknown) {
+    if (!(error instanceof Error) || !('code' in error) || error.code !== 'SESSION_QUERY_SEARCH_DISABLED') throw error
+  }
+
+  const rows: string[] = []
+  for (const record of await query.listSessions()) {
+    const documents = await query.filterEvents(record.header.id as never, [
       { kind: 'type', values: ['user/message', 'assistant/message'] },
       { kind: 'surface', values: ['current'] },
-    ],
-    limit: 20,
-  })
-  return page.items.length === 0 ? 'No matching sessions.' : page.items
-    .map(hit => `${hit.header.id}  ${hit.bestMatch.snippet.replace(/\s+/g, ' ').trim()}`)
-    .join('\n')
+      { kind: 'text', text },
+    ])
+    const first = documents[0]
+    if (first === undefined) continue
+    const title = await query.readTitle(record.header.id as never)
+    const snippet = first.text.replace(/\s+/g, ' ').trim()
+    rows.push(`${record.header.id}${title === undefined ? '' : `  ${title.title}`}  ${snippet.slice(0, 180)}`)
+    if (rows.length === 20) break
+  }
+  return rows.length === 0 ? 'No matching sessions.' : rows.join('\n')
 }

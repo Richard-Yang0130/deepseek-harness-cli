@@ -13,7 +13,7 @@ describe('line mode', () => {
       close: () => {},
     }
     await runLineMode({
-      snapshot: () => ({ phase: 'idle', cwd: '/work', commands: [], transcript: [], panel: null, subagents: [] }),
+      snapshot: () => ({ phase: 'idle', cwd: '/work', commands: [], transcript: [], panel: null }),
       subscribe: () => () => {},
       start: (resume) => { calls.push(`start:${resume ?? ''}`); return Promise.resolve() },
       submit: (text) => { calls.push(`submit:${text}`); return Promise.resolve() },

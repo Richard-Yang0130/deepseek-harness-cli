@@ -90,6 +90,27 @@ describe('TUI controller dispatch', () => {
     expect(prompts).toEqual([])
   })
 
+  it('does not duplicate a Harness command result already shown by its lifecycle card', async () => {
+    let publish: ((event: SessionEvent) => void) | undefined
+    const controller = new TuiController(services({
+      listCommands: () => [{ name: 'goal', description: 'Set goal' }],
+      subscribeEvents: (listener) => { publish = listener; return () => {} },
+      executeCommand: () => {
+        publish?.({
+          type: 'command/done', seq: 1, time: 1,
+          data: { commandId: 'command-1', kind: 'success', text: 'Goal updated.' },
+        })
+        return Promise.resolve({ kind: 'success', text: 'Goal updated.' })
+      },
+    }))
+    await controller.start()
+    await controller.submit('/goal ship it')
+    expect(controller.snapshot().notice).toBeUndefined()
+    expect(controller.snapshot().transcript).toEqual([{
+      id: 'command-command-1', kind: 'command', title: 'command', detail: 'Goal updated.', status: 'success',
+    }])
+  })
+
   it('leaves known skill gestures for the existing pre-step injector', async () => {
     const prompts: string[] = []
     const controller = new TuiController(services({
@@ -109,6 +130,45 @@ describe('TUI controller dispatch', () => {
     await controller.submit('/sessions')
     expect(executed).toEqual(['/sessions'])
     expect(controller.snapshot().notice).toBe('listed')
+  })
+
+  it('requests application exit when /exit is typed directly', async () => {
+    let executed = false
+    const controller = new TuiController(services({
+      listTerminalCommands: () => [{ name: 'exit', description: 'Quit', source: 'terminal' }],
+      executeTerminalCommand: () => { executed = true; return Promise.resolve(undefined) },
+    }))
+    await controller.submit('/exit')
+    expect(controller.snapshot().exitRequested).toBe(true)
+    expect(executed).toBe(false)
+  })
+
+  it('replaces the transcript after a terminal command switches sessions', async () => {
+    let sessionId = 'session-old'
+    let events: SessionEvent[] = [{
+      type: 'assistant/chunk', seq: 0, time: 1,
+      data: { turn: 1, step: 1, chunk: { type: 'text-delta', index: 0, text: 'old history' } },
+    }]
+    const controller = new TuiController(services({
+      listTerminalCommands: () => [{ name: 'resume', description: 'Resume', source: 'terminal' }],
+      details: () => ({ cwd: '/work', sessionId }),
+      events: () => events,
+      executeTerminalCommand: () => {
+        sessionId = 'session-new'
+        events = [{
+          type: 'assistant/chunk', seq: 0, time: 2,
+          data: { turn: 2, step: 1, chunk: { type: 'text-delta', index: 0, text: 'new history' } },
+        }]
+        return Promise.resolve(undefined)
+      },
+    }))
+    await controller.start()
+    expect(controller.snapshot().transcript).toHaveLength(1)
+    await controller.submit('/resume session-new')
+    expect(controller.snapshot().sessionId).toBe('session-new')
+    expect(controller.snapshot().transcript).toEqual([
+      { id: 'assistant-2-1', kind: 'assistant', text: 'new history' },
+    ])
   })
 
   it('reports unknown slash input locally without prompting the model', async () => {

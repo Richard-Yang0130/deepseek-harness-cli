@@ -10,7 +10,7 @@ A Claude Code-style terminal interface for [DeepSeek Harness](https://github.com
 
 - An Ink-based interactive interface with a compact DeepSeek whale header.
 - Type `/` to open a downward command menu; use arrow keys and Enter to select.
-- Type `@` to select a live subagent.
+- Use `/subagents` to inspect available providers and child sessions.
 - Persisted sessions, resume, rename, search, export, workspace switching, image attachments, jobs, skills, subagents, approvals, questions, models, credentials, presets, settings, plugins, statistics, and feedback.
 - The official Harness command registry remains authoritative for `/permission`, `/plan`, `/goal`, `/feedback`, workflows, and commands contributed by plugins.
 - The original Web interface is untouched. This package creates a separate `dsh-cli` profile.
@@ -54,9 +54,8 @@ dsh-cli doctor
 - Enter sends a prompt.
 - `/` opens the command menu below the composer.
 - Up/Down selects a command; Enter completes it; Esc closes the menu.
-- `@` opens the subagent menu.
+- `/subagents` lists providers and child-session state.
 - Ctrl+C cancels the running turn. Press Ctrl+C while idle to exit.
-- Non-interactive stdin uses the same controller in line mode.
 
 Common commands:
 

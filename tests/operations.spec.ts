@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
-  credentialsOperation, messageFeedbackOperation, modelsOperation, settingsOperation,
+  credentialsOperation, messageFeedbackOperation, modelsOperation, sessionSearchOperation, settingsOperation,
 } from '../src/operations.js'
 
 describe('terminal operations', () => {
@@ -46,5 +46,27 @@ describe('terminal operations', () => {
       sessionId: 'example-session', messageId: 'message-1', rating: 'positive', note: 'helpful', ifVersion: 'current',
     })
     expect(text).toContain('Saved')
+  })
+
+  it('lists every assistant message id so new feedback has a usable target', async () => {
+    const text = await messageFeedbackOperation({
+      list: async () => ({ ok: true as const, value: { items: [{ messageId: 'message-rated', rating: 'positive', version: 'v1' }] } }),
+      put: async () => ({ ok: true as const, value: {} }),
+      delete: async () => ({ ok: true as const, value: {} }),
+    }, 'example-session', 'list', ['message-new', 'message-rated'])
+    expect(text).toContain('message-new  unrated')
+    expect(text).toContain('message-rated  positive')
+  })
+
+  it('falls back to the provider-independent literal scan when full-text search is disabled', async () => {
+    const disabled = Object.assign(new Error('disabled'), { code: 'SESSION_QUERY_SEARCH_DISABLED' })
+    const text = await sessionSearchOperation({
+      searchSessions: async () => { throw disabled },
+      listSessions: async () => [{ header: { id: 'session-match' } }, { header: { id: 'session-empty' } }],
+      filterEvents: async (sessionId) => sessionId === 'session-match' ? [{ text: 'matched session content' }] : [],
+      readTitle: async () => ({ title: 'Example title' }),
+    }, 'matched')
+    expect(text).toContain('session-match  Example title  matched session content')
+    expect(text).not.toContain('session-empty')
   })
 })
