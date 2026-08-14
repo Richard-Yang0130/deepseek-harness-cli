@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.7 — 2026-08-14
+
+- Reset Ink's tracked output and clear the visible terminal before resize redraws so terminal reflow cannot leave old welcome rails behind.
+
 ## 0.1.6 — 2026-08-14
 
 - Subscribe to terminal resize events so the welcome box, composer, and status line redraw with one current column width instead of leaving stale border fragments.

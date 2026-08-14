@@ -5,6 +5,21 @@ import { readBannerFacts, type BannerFacts } from './banner-facts.js'
 import type { TuiControllerPort, TuiControllerSnapshot } from './controller.js'
 import type { TuiStartupValues } from './startup.js'
 
+interface ResizeOutput {
+  prependListener(event: 'resize', listener: () => void): unknown
+  off(event: 'resize', listener: () => void): unknown
+  write(value: string): unknown
+}
+
+export function installResizeCleanup(output: ResizeOutput, clearInkOutput: () => void): () => void {
+  const clearBeforeResize = (): void => {
+    clearInkOutput()
+    output.write('\u001B[2J\u001B[H')
+  }
+  output.prependListener('resize', clearBeforeResize)
+  return () => { output.off('resize', clearBeforeResize) }
+}
+
 function ConnectedApp({ controller, requestExit, bannerFacts }: {
   readonly controller: TuiControllerPort
   readonly requestExit: () => void
@@ -47,9 +62,11 @@ export async function runInkMode(
     <ConnectedApp controller={controller} requestExit={() => { exit.resolve() }} bannerFacts={bannerFacts} />,
     { exitOnCtrlC: false, patchConsole: false },
   )
+  const removeResizeCleanup = installResizeCleanup(process.stdout, () => { instance.clear() })
   try {
     await exit.promise
   } finally {
+    removeResizeCleanup()
     instance.unmount()
     await controller.stop()
   }

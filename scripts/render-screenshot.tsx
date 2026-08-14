@@ -27,10 +27,10 @@ function ScreenshotApp(): React.JSX.Element {
         snapshot={snapshot}
         columns={100}
         bannerFacts={{
-          version: '0.1.6',
+          version: '0.1.7',
           latest: {
-            version: '0.1.6',
-            bullets: ['欢迎框跟随终端宽度实时重绘'],
+            version: '0.1.7',
+            bullets: ['缩放前清理旧帧，避免边框残影'],
           },
         }}
       />
