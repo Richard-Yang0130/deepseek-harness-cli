@@ -1,5 +1,6 @@
 import React from 'react'
 import { Box, Text, useStdout } from 'ink'
+import type { BannerFacts } from './banner-facts.js'
 import type { TuiControllerSnapshot } from './controller.js'
 import type { DecisionIntent } from './controller-types.js'
 import { DecisionPanel } from './components/DecisionPanel.js'
@@ -18,14 +19,15 @@ export interface AppProps {
   readonly snapshot: TuiControllerSnapshot
   readonly dispatch: (intent: AppIntent) => void
   readonly columns?: number
+  readonly bannerFacts?: BannerFacts
 }
 
-export function App({ snapshot, dispatch, columns: columnsOverride }: AppProps): React.JSX.Element {
+export function App({ snapshot, dispatch, columns: columnsOverride, bannerFacts }: AppProps): React.JSX.Element {
   const { stdout } = useStdout()
   const columns = columnsOverride ?? stdout.columns
   return (
     <Box flexDirection="column">
-      <Header snapshot={snapshot} columns={columns} />
+      <Header snapshot={snapshot} columns={columns} {...bannerFacts === undefined ? {} : { bannerFacts }} />
       <Transcript nodes={snapshot.transcript} />
       {snapshot.notice === undefined ? null : <Text color="yellow">{snapshot.notice}</Text>}
       {snapshot.panel === null

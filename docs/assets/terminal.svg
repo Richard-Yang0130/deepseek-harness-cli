@@ -1,27 +1,29 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="594" viewBox="0 0 1320 594">
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="638" viewBox="0 0 1320 638">
 <rect width="100%" height="100%" rx="22" fill="#181825"/>
 <circle cx="28" cy="26" r="7" fill="#ff5f57"/><circle cx="51" cy="26" r="7" fill="#febc2e"/><circle cx="74" cy="26" r="7" fill="#28c840"/>
 <text x="660" y="31" text-anchor="middle" fill="#8f93aa" font-family="SFMono-Regular, Menlo, monospace" font-size="14">deepseek-harness-cli</text>
-<g font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="16" xml:space="preserve"><text x="42" y="70" fill="#6685ff">      ⢀⣠⣤⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣶⣤⣀                 ⢀⣠⣤⡆</text>
-<text x="42" y="92" fill="#6685ff">   ⢀⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣦⣀       ⣠⣿⣿⣿⠃</text>
-<text x="42" y="114" fill="#6685ff"> ⢀⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣤⣾⣿⣿⣿⠏          DeepSeek Harness</text>
-<text x="42" y="136" fill="#6685ff">⣾⣿⠟⠉⠉⠉⠉⠉⠉⠉⠉⠙⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡯⠁               deepseek-v4-pro</text>
-<text x="42" y="158" fill="#6685ff">⣿⣿⡀                 ⠈⠙⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡟⢉⣽⣿⣿⣿⠃             /workspace/example-project</text>
-<text x="42" y="180" fill="#6685ff">⢻⣿⣷⣄                    ⠙⣿⣿⣿⣿⣿⣿⣿⣷⣿⣿⣿⡟</text>
-<text x="42" y="202" fill="#6685ff"> ⠹⣿⣿⣿⣷⣄        ⣠⣶⣶⣄      ⠻⣿⣿⣿⣿⣿⣿⣿⣧⣀</text>
-<text x="42" y="224" fill="#6685ff">    ⠙⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠿⠋          ⠈⠻⠿⠿⠿⠟⠁</text>
-<text x="42" y="246" fill="#c9cce0"></text>
-<text x="42" y="268" fill="#c9cce0">────────────────────────────────────────────────────────────────────────────────────────────────────</text>
-<text x="42" y="290" fill="#f2f4ff"> ❯ /</text>
+<g font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="16" xml:space="preserve"><text x="42" y="70" fill="#6685ff">╭─ DeepSeek Harness v0.1.5 ──────────────────────────────────────────────────────────────────────╮</text>
+<text x="42" y="92" fill="#6685ff">│                      │ 快速上手                                                                │</text>
+<text x="42" y="114" fill="#6685ff">│                      │ 输入 / 打开命令菜单，Enter 发送                                         │</text>
+<text x="42" y="136" fill="#6685ff">│          🐳          │ 输入 /help 查看全部命令                                                 │</text>
+<text x="42" y="158" fill="#6685ff">│    Welcome back!     │ ────────────────────────────────────────────────────────────────────────│</text>
+<text x="42" y="180" fill="#6685ff">│   deepseek-v4-pro    │ 本次更新 v0.1.5                                                         │</text>
+<text x="42" y="202" fill="#6685ff">│…space/example-project│ • 新增 Claude 风格双栏欢迎框                                            │</text>
+<text x="42" y="224" fill="#6685ff">│                      │ • 启动时展示最新更新内容                                                │</text>
+<text x="42" y="246" fill="#c9cce0">│                      │ • 字符画替换为紧凑鲸鱼标识                                              │</text>
+<text x="42" y="268" fill="#c9cce0">╰────────────────────────────────────────────────────────────────────────────────────────────────╯</text>
+<text x="42" y="290" fill="#c9cce0"></text>
 <text x="42" y="312" fill="#c9cce0">────────────────────────────────────────────────────────────────────────────────────────────────────</text>
-<text x="42" y="334" fill="#f2f4ff">  ❯ /help  Show terminal commands  [terminal]</text>
-<text x="42" y="356" fill="#c9cce0">    /models  List model providers and models  [terminal]</text>
-<text x="42" y="378" fill="#c9cce0">    /model  Switch the session model  [terminal]</text>
-<text x="42" y="400" fill="#c9cce0">    /sessions  List or search sessions  [terminal]</text>
-<text x="42" y="422" fill="#c9cce0">    /presets  Manage agent presets  [terminal]</text>
-<text x="42" y="444" fill="#c9cce0">    /settings  Inspect or edit settings  [terminal]</text>
-<text x="42" y="466" fill="#c9cce0">    /plugins  List loaded Harness plugins  [terminal]</text>
-<text x="42" y="488" fill="#c9cce0">    /jobs  List background jobs  [terminal]</text>
-<text x="42" y="510" fill="#c9cce0">────────────────────────────────────────────────────────────────────────────────────────────────────</text>
-<text x="42" y="532" fill="#c9cce0">◆ ready · workspace-write · deepseek-v4-pro</text></g>
+<text x="42" y="334" fill="#f2f4ff"> ❯ /</text>
+<text x="42" y="356" fill="#c9cce0">────────────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="42" y="378" fill="#f2f4ff">  ❯ /help  Show terminal commands  [terminal]</text>
+<text x="42" y="400" fill="#c9cce0">    /models  List model providers and models  [terminal]</text>
+<text x="42" y="422" fill="#c9cce0">    /model  Switch the session model  [terminal]</text>
+<text x="42" y="444" fill="#c9cce0">    /sessions  List or search sessions  [terminal]</text>
+<text x="42" y="466" fill="#c9cce0">    /presets  Manage agent presets  [terminal]</text>
+<text x="42" y="488" fill="#c9cce0">    /settings  Inspect or edit settings  [terminal]</text>
+<text x="42" y="510" fill="#c9cce0">    /plugins  List loaded Harness plugins  [terminal]</text>
+<text x="42" y="532" fill="#c9cce0">    /jobs  List background jobs  [terminal]</text>
+<text x="42" y="554" fill="#c9cce0">────────────────────────────────────────────────────────────────────────────────────────────────────</text>
+<text x="42" y="576" fill="#c9cce0">◆ ready · workspace-write · deepseek-v4-pro</text></g>
 </svg>

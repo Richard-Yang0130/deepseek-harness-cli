@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.5 — 2026-08-14
+
+- Add a Claude Code-style bordered welcome panel with an embedded title rail and two-column layout.
+- Show quick-start guidance and up to three items from the latest changelog section without risking startup failures.
+- Replace the terminal whale drawing with a compact whale mark and preserve a narrow-terminal fallback below 72 columns.
+
 ## 0.1.4 — 2026-08-14
 
 - Redraw the DeepSeek whale from 34 to 46 terminal columns so it appears visibly longer with real monospace cell proportions.
