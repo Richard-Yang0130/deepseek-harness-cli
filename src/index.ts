@@ -140,10 +140,12 @@ function processIo(): TerminalIo {
 
 export const internals: {
   createIo(): TerminalIo
+  createServices(ctx: Context, io: TerminalIo, lineOutput: boolean): TuiServices
   isInteractive(): boolean
   runInk(controller: TuiController, startup: TuiStartupValues): Promise<void>
 } = {
   createIo: processIo,
+  createServices: (ctx, io, lineOutput) => new HarnessTerminalServices(ctx, io, lineOutput),
   isInteractive: () => process.stdin.isTTY && process.stdout.isTTY,
   runInk: runInkMode,
 }
@@ -404,12 +406,8 @@ class HarnessTerminalServices implements TuiServices {
 
   async prompt(text: string): Promise<void> {
     if (text === '') return
-    const content: ContentBlock[] = [
-      ...this.pendingImages.map(attachment => ({ type: 'image' as const, attachment })),
-      { type: 'text', text },
-    ]
     this.agent.followup(createUserMessage({
-      content,
+      content: this.takeContent(text),
       source: { kind: 'user' },
     }))
     this.pendingImages = []
@@ -419,15 +417,19 @@ class HarnessTerminalServices implements TuiServices {
 
   steer(text: string): void {
     if (text === '') return
-    const content: ContentBlock[] = [
-      ...this.pendingImages.map(attachment => ({ type: 'image' as const, attachment })),
-      { type: 'text', text },
-    ]
     this.agent.steer(createUserMessage({
-      content,
+      content: this.takeContent(text),
       source: { kind: 'user' },
     }))
     this.pendingImages = []
+  }
+
+  /** Build one outgoing message's content with any attached images. */
+  private takeContent(text: string): ContentBlock[] {
+    return [
+      ...this.pendingImages.map(attachment => ({ type: 'image' as const, attachment })),
+      { type: 'text', text },
+    ]
   }
 
   cancel(): void {
@@ -667,7 +669,7 @@ export function apply(ctx: Context, config: TuiStartupValues): void {
   if (exit === undefined) throw new Error('tui-runner: the launcher must provide ctx.appExit')
   const io = internals.createIo()
   const interactive = internals.isInteractive()
-  const controller = new TuiController(new HarnessTerminalServices(ctx, io, !interactive))
+  const controller = new TuiController(internals.createServices(ctx, io, !interactive))
   const running = interactive ? internals.runInk(controller, config) : runLineMode(controller, io, config)
   void running.then(
     () => { io.close(); exit(0) },

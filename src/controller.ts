@@ -6,7 +6,7 @@ import type {
 } from '@deepseek-ai/dsh-user-questions'
 import { commandCatalog } from './command-catalog.js'
 import type {
-  DecisionIntent, DecisionPanelState, LocalCommandDefinition, TranscriptNode, TuiCommand,
+  AppPhase, DecisionIntent, DecisionPanelState, LocalCommandDefinition, TranscriptNode, TuiCommand,
 } from './controller-types.js'
 import { presentSessionEvent } from './event-presenter.js'
 
@@ -42,7 +42,7 @@ export interface TuiDecisionHandlers {
 }
 
 export interface TuiControllerSnapshot {
-  readonly phase: 'starting' | 'idle' | 'running' | 'stopping'
+  readonly phase: AppPhase
   readonly cwd: string
   readonly sessionId?: string
   readonly provider?: string
@@ -72,7 +72,7 @@ type PendingDecision =
   | { readonly kind: 'question'; readonly id: string; readonly resolve: (answer: AskUserQuestionAnswerItem) => void }
 
 export class TuiController {
-  private phase: TuiControllerSnapshot['phase'] = 'idle'
+  private phase: AppPhase = 'idle'
   private notice: string | undefined
   private active: AbortController | undefined
   private transcript: readonly TranscriptNode[] = []
@@ -147,9 +147,10 @@ export class TuiController {
     if (input === '') return
 
     this.notice = undefined
-    const match = SLASH_COMMAND.exec(input)
+    // Mid-turn input steers the running driver; commands that swap sessions or
+    // shells would pull agents out from under it, so they wait for idle.
     if (this.phase === 'running') {
-      if (match !== null) {
+      if (SLASH_COMMAND.test(input)) {
         this.notice = 'Slash commands are unavailable while DeepSeek is working.'
         this.notify()
         return
@@ -157,6 +158,7 @@ export class TuiController {
       this.services.steer?.(input)
       return
     }
+    const match = SLASH_COMMAND.exec(input)
     if (match !== null) {
       const name = match[1]
       if (name === undefined) return
