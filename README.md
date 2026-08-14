@@ -8,7 +8,7 @@ A Claude Code-style terminal interface for [DeepSeek Harness](https://github.com
 
 ## What it provides
 
-- An Ink-based interactive interface with a compact DeepSeek whale header.
+- An Ink-based interactive interface with a Claude Code-style welcome box, compact 🐳 mark, quick-start tips, and release notes.
 - Type `/` to open a downward command menu; use arrow keys and Enter to select.
 - Use `/subagents` to inspect available providers and child sessions.
 - Persisted sessions, resume, rename, search, export, workspace switching, image attachments, jobs, skills, subagents, approvals, questions, models, credentials, presets, settings, plugins, statistics, and feedback.

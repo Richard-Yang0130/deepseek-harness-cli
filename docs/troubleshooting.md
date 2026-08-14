@@ -45,7 +45,7 @@ The official base profile keeps ranked SQLite full-text search disabled unless t
 
 ## Terminal is too narrow
 
-Below 62 columns the whale is intentionally hidden. Increase the terminal width for the full header. The command menu and decisions remain usable at narrow widths.
+At 72 columns and wider, `dsh-cli` shows the bordered two-column welcome box. Below 72 columns it switches to a compact `🐳 DeepSeek Harness` header so the command menu and decisions remain usable.
 
 ## Resetting a credential
 

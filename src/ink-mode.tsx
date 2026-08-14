@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import { render } from 'ink'
 import { App, type AppIntent } from './app.js'
+import { readBannerFacts, type BannerFacts } from './banner-facts.js'
 import type { TuiControllerPort, TuiControllerSnapshot } from './controller.js'
 import type { TuiStartupValues } from './startup.js'
 
-function ConnectedApp({ controller, requestExit }: {
+function ConnectedApp({ controller, requestExit, bannerFacts }: {
   readonly controller: TuiControllerPort
   readonly requestExit: () => void
+  readonly bannerFacts: BannerFacts
 }): React.JSX.Element {
   const [snapshot, setSnapshot] = useState<TuiControllerSnapshot>(() => controller.snapshot())
   useEffect(() => controller.subscribe(() => { setSnapshot(controller.snapshot()) }), [controller])
@@ -29,7 +31,7 @@ function ConnectedApp({ controller, requestExit }: {
     }
   }
 
-  return <App snapshot={snapshot} dispatch={dispatch} />
+  return <App snapshot={snapshot} dispatch={dispatch} bannerFacts={bannerFacts} />
 }
 
 /** Mount the interactive Ink surface over the shared Harness controller. */
@@ -37,11 +39,12 @@ export async function runInkMode(
   controller: TuiControllerPort,
   startup: TuiStartupValues,
 ): Promise<void> {
+  const bannerFacts = await readBannerFacts()
   await controller.start(startup.resume)
   if (startup.prompt !== undefined) await controller.submit(startup.prompt)
   const exit = Promise.withResolvers<void>()
   const instance = render(
-    <ConnectedApp controller={controller} requestExit={() => { exit.resolve() }} />,
+    <ConnectedApp controller={controller} requestExit={() => { exit.resolve() }} bannerFacts={bannerFacts} />,
     { exitOnCtrlC: false, patchConsole: false },
   )
   try {
