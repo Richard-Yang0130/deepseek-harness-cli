@@ -4,7 +4,7 @@
 
 **Goal:** Replace the installed eight-row whale with a visibly longer 46-column silhouette in real monospace terminals.
 
-**Architecture:** Keep `Whale.tsx` as the single visual source and tighten its renderer test around the approved geometry. Rebuild committed output, regenerate the sanitized screenshot, release a patch, and refresh both the global package and isolated dsh profile.
+**Architecture:** Keep `Whale.tsx` as the single visual source, widen the fixed whale cell in `Header.tsx`, and tighten renderer tests around the approved geometry and non-wrapping layout. Rebuild committed output, regenerate the sanitized screenshot, release a patch, and refresh both the global package and isolated dsh profile.
 
 **Tech Stack:** React 18, Ink 5, TypeScript, Vitest, string-width, npm, dsh
 
@@ -38,6 +38,7 @@ No standalone commit is made while main is red.
 
 **Files:**
 - Modify: `src/components/Whale.tsx`
+- Modify: `src/components/Header.tsx`
 - Test: `tests/shell.spec.tsx`
 
 - [ ] **Step 1: Replace the eight-row literal**
@@ -59,14 +60,26 @@ export const DEEPSEEK_WHALE = [
 
 - [ ] **Step 2: Verify the focused test passes**
 
+Change the full-header breakpoint from `62` to `82` and the whale cell width from `36` to `50` in `Header.tsx`:
+
+```tsx
+if (columns < 82) {
+  // existing compact header
+}
+
+<Box width={50} flexShrink={0}><Whale /></Box>
+```
+
+- [ ] **Step 3: Verify the focused test passes**
+
 Run: `npm test -- tests/shell.spec.tsx`
 
 Expected: 2 tests pass; the whale has eight rows and a maximum width from 46 through 50.
 
-- [ ] **Step 3: Commit the visual and test**
+- [ ] **Step 4: Commit the visual and test**
 
 ```bash
-git add src/components/Whale.tsx tests/shell.spec.tsx
+git add src/components/Whale.tsx src/components/Header.tsx tests/shell.spec.tsx docs/superpowers
 git commit -m "feat: widen terminal whale"
 ```
 

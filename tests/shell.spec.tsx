@@ -25,11 +25,11 @@ describe('terminal shell', () => {
   it('renders the approved wide eight-row whale and primary status', () => {
     const rows = DEEPSEEK_WHALE.split('\n')
     expect(rows).toHaveLength(8)
-    expect(Math.max(...rows.map(row => stringWidth(row.trimEnd())))).toBeGreaterThanOrEqual(32)
-    expect(Math.max(...rows.map(row => stringWidth(row)))).toBeLessThanOrEqual(36)
+    expect(Math.max(...rows.map(row => stringWidth(row.trimEnd())))).toBeGreaterThanOrEqual(46)
+    expect(Math.max(...rows.map(row => stringWidth(row)))).toBeLessThanOrEqual(50)
     const view = render(<App snapshot={snapshot()} dispatch={() => {}} columns={100} />)
     const frame = view.lastFrame() ?? ''
-    expect(frame).toContain('⠙⠿⣿⣿⣿⣿⣿⣿⠿⠋')
+    expect(frame).toContain('⠙⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠿⠋')
     expect(frame).toContain('DeepSeek Harness')
     expect(frame).toContain('deepseek-v4-pro')
     expect(frame).toContain('workspace-write')
@@ -38,9 +38,10 @@ describe('terminal shell', () => {
   })
 
   it('drops secondary status before primary state at narrow widths', () => {
-    const view = render(<App snapshot={snapshot()} dispatch={() => {}} columns={48} />)
+    const view = render(<App snapshot={snapshot()} dispatch={() => {}} columns={80} />)
     const frame = view.lastFrame() ?? ''
     expect(frame).toContain('workspace-write')
     expect(frame).not.toContain('example-session')
+    expect(frame).not.toContain('⢀⣠⣤⣶⣶⣶')
   })
 })

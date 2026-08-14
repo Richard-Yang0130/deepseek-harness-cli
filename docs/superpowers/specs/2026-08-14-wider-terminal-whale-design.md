@@ -11,11 +11,13 @@ Make the DeepSeek whale visibly longer in real monospace terminals such as Ghost
 - Target a maximum rendered width between 46 and 50 terminal columns.
 - Preserve the recognizable DeepSeek silhouette: broad rounded body, white lower opening, small eye/fin detail, raised tail, and pointed lower snout.
 - Keep the existing DeepSeek blue and Braille/block-character rendering style.
-- Leave the header, status line, command menu, and narrow-terminal fallback unchanged.
+- Expand the whale's fixed header cell from 36 to 50 columns so Ink never wraps the new drawing.
+- Raise the compact-header breakpoint from 62 to 82 columns; narrow terminals keep the existing text-only fallback.
+- Leave the status line and command menu unchanged.
 
 ## Verification
 
-- Update the whale unit test to require eight rows and the new width range.
+- Update the whale unit test to require eight rows, the new width range, and no wrapping at 100 columns.
 - Regenerate the privacy-safe terminal screenshot.
 - Render the installed CLI in a real PTY and confirm the active global/profile copies contain the new whale.
 - Run build, tests, typecheck, lint, and privacy checks before release.
