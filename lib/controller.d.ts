@@ -2,7 +2,7 @@ import type { CommandDescriptor, CommandResult } from '@deepseek-ai/dsh-commands
 import type { SessionEvent } from '@deepseek-ai/dsh-session';
 import type { ApprovalOutcome } from '@deepseek-ai/dsh-user-approval';
 import type { AskUserQuestionAnswer, AskUserQuestionItem } from '@deepseek-ai/dsh-user-questions';
-import type { DecisionIntent, DecisionPanelState, LocalCommandDefinition, TranscriptNode, TuiCommand } from './controller-types.js';
+import type { AppPhase, DecisionIntent, DecisionPanelState, LocalCommandDefinition, TranscriptNode, TuiCommand } from './controller-types.js';
 export interface TuiServices {
     start?(resume?: string): Promise<void>;
     listCommands(): readonly CommandDescriptor[];
@@ -36,7 +36,7 @@ export interface TuiDecisionHandlers {
     questions(items: readonly AskUserQuestionItem[]): Promise<AskUserQuestionAnswer>;
 }
 export interface TuiControllerSnapshot {
-    readonly phase: 'starting' | 'idle' | 'running' | 'stopping';
+    readonly phase: AppPhase;
     readonly cwd: string;
     readonly sessionId?: string;
     readonly provider?: string;

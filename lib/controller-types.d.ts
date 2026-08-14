@@ -1,4 +1,6 @@
 import type { TodoItem } from '@deepseek-ai/dsh-session';
+/** Session lifecycle the composer and status line branch on. */
+export type AppPhase = 'starting' | 'idle' | 'running' | 'stopping';
 export type CommandSource = 'harness' | 'terminal' | 'skill';
 export interface TuiCommand {
     readonly name: string;

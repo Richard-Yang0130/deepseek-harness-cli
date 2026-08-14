@@ -1,6 +1,6 @@
 import type { Context } from '@deepseek-ai/cordis';
 import { type Agent, type ModelSelectionRef } from '@deepseek-ai/dsh-agent';
-import { TuiController } from './controller.js';
+import { TuiController, type TuiServices } from './controller.js';
 import { type TerminalIo } from './line-mode.js';
 import type { TuiStartupValues } from './startup.js';
 export declare const name = "tui-runner";
@@ -117,6 +117,7 @@ export declare const TERMINAL_COMMANDS: readonly [{
 }];
 export declare const internals: {
     createIo(): TerminalIo;
+    createServices(ctx: Context, io: TerminalIo, lineOutput: boolean): TuiServices;
     isInteractive(): boolean;
     runInk(controller: TuiController, startup: TuiStartupValues): Promise<void>;
 };
