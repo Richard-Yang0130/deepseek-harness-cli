@@ -1,6 +1,5 @@
 .worktrees/
 node_modules/
-lib/
 coverage/
 *.tgz
 .DS_Store

@@ -2,7 +2,7 @@ import { readdir, readFile } from 'node:fs/promises'
 import { extname, relative } from 'node:path'
 
 const root = new URL('../', import.meta.url)
-const skipped = new Set(['.git', '.worktrees', 'coverage', 'lib', 'node_modules'])
+const skipped = new Set(['.git', '.worktrees', 'coverage', 'node_modules'])
 const binary = new Set(['.gif', '.jpg', '.jpeg', '.png', '.webp', '.zip'])
 const checks: readonly [string, RegExp][] = [
   ['macOS home path', /\/Users\/[^/\s]+\//],

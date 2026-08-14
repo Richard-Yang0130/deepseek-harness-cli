@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1 — 2026-08-14
+
+- Ship compiled runtime files in Git so `npm install -g github:…` does not depend on development tools during installation.
+
 ## 0.1.0 — 2026-08-14
 
 - Initial standalone terminal release.
