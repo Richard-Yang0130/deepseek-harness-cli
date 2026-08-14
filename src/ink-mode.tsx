@@ -11,6 +11,8 @@ interface ResizeOutput {
   write(value: string): unknown
 }
 
+export const inkInternals: { render: typeof render; stdout: ResizeOutput } = { render, stdout: process.stdout }
+
 export function installResizeCleanup(output: ResizeOutput, clearInkOutput: () => void): () => void {
   const clearBeforeResize = (): void => {
     clearInkOutput()
@@ -20,13 +22,18 @@ export function installResizeCleanup(output: ResizeOutput, clearInkOutput: () =>
   return () => { output.off('resize', clearBeforeResize) }
 }
 
-function ConnectedApp({ controller, requestExit, bannerFacts }: {
+export function ConnectedApp({ controller, requestExit, bannerFacts }: {
   readonly controller: TuiControllerPort
   readonly requestExit: () => void
   readonly bannerFacts: BannerFacts
 }): React.JSX.Element {
   const [snapshot, setSnapshot] = useState<TuiControllerSnapshot>(() => controller.snapshot())
-  useEffect(() => controller.subscribe(() => { setSnapshot(controller.snapshot()) }), [controller])
+  useEffect(() => {
+    const refresh = (): void => { setSnapshot(controller.snapshot()) }
+    const unsubscribe = controller.subscribe(refresh)
+    refresh()
+    return unsubscribe
+  }, [controller])
   useEffect(() => {
     if (snapshot.exitRequested === true) requestExit()
   }, [requestExit, snapshot.exitRequested])
@@ -55,19 +62,59 @@ export async function runInkMode(
   startup: TuiStartupValues,
 ): Promise<void> {
   const bannerFacts = await readBannerFacts()
-  await controller.start(startup.resume)
-  if (startup.prompt !== undefined) await controller.submit(startup.prompt)
   const exit = Promise.withResolvers<void>()
-  const instance = render(
-    <ConnectedApp controller={controller} requestExit={() => { exit.resolve() }} bannerFacts={bannerFacts} />,
+  let closing = false
+  let startupFailure: { readonly error: unknown } | undefined
+  let teardownFailure: { readonly error: unknown } | undefined
+  const requestExit = (): void => {
+    closing = true
+    exit.resolve()
+  }
+  const instance = inkInternals.render(
+    <ConnectedApp controller={controller} requestExit={requestExit} bannerFacts={bannerFacts} />,
     { exitOnCtrlC: false, patchConsole: false },
   )
-  const removeResizeCleanup = installResizeCleanup(process.stdout, () => { instance.clear() })
+  const removeResizeCleanup = installResizeCleanup(inkInternals.stdout, () => { instance.clear() })
+  const startupTask = (async () => {
+    try {
+      await controller.start(startup.resume)
+      if (!closing && startup.prompt !== undefined) await controller.submit(startup.prompt)
+    } catch (error: unknown) {
+      startupFailure = { error }
+      exit.reject(error)
+    }
+  })()
+  const recordTeardownFailure = (error: unknown): void => {
+    teardownFailure ??= { error }
+  }
   try {
     await exit.promise
+  } catch {
+    // Startup failures are rethrown after teardown.
   } finally {
-    removeResizeCleanup()
-    instance.unmount()
-    await controller.stop()
+    closing = true
+    try {
+      controller.cancel()
+    } catch (error: unknown) {
+      recordTeardownFailure(error)
+    }
+    await startupTask
+    try {
+      await controller.stop()
+    } catch (error: unknown) {
+      recordTeardownFailure(error)
+    }
+    try {
+      removeResizeCleanup()
+    } catch (error: unknown) {
+      recordTeardownFailure(error)
+    }
+    try {
+      instance.unmount()
+    } catch (error: unknown) {
+      recordTeardownFailure(error)
+    }
   }
+  if (startupFailure !== undefined) throw startupFailure.error
+  if (teardownFailure !== undefined) throw teardownFailure.error
 }
