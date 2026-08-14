@@ -47,7 +47,7 @@ describe('dsh-cli launcher', () => {
     expect(code).toBe(0)
     expect(calls).toEqual([
       { args: ['--version'], inherited: false },
-      { args: ['plugin', '--profile', 'dsh-cli', 'add', '/tmp/package root/deepseek-harness-cli'], inherited: true },
+      { args: ['plugin', '--profile', 'dsh-cli', 'add', 'file:/tmp/package root/deepseek-harness-cli'], inherited: true },
       { args: ['--profile', 'dsh-cli', '--resume', 'example-session'], inherited: true },
     ])
     expect(output.join('')).toContain('Configured the dsh-cli profile')

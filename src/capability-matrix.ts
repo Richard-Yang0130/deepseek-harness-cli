@@ -1,33 +1,41 @@
 export interface TuiCapability {
   readonly id: string
   readonly entry: string
-  readonly adapter: string
+  readonly service: string
+  readonly effect: 'read' | 'write' | 'execute'
+  readonly testId: string
+  readonly status: 'mapped'
 }
 
-/** Traceability map from the shipped Harness surface to its terminal entry. */
+/** Executable traceability map from Web operations to their terminal equivalent. */
 export const TUI_CAPABILITIES: readonly TuiCapability[] = [
-  { id: 'prompt', entry: 'composer', adapter: 'Agent.followup' },
-  { id: 'cancel', entry: 'Ctrl+C', adapter: 'Agent.cancel' },
-  { id: 'commands', entry: '/ dynamic menu', adapter: 'CommandRuntime.list/execute' },
-  { id: 'model', entry: '/model', adapter: 'installModelSelection' },
-  { id: 'permission', entry: '/permission and decision panel', adapter: 'approval/request' },
-  { id: 'plan', entry: '/plan', adapter: 'Harness command registry' },
-  { id: 'goal', entry: '/goal', adapter: 'Harness command registry' },
-  { id: 'sessions', entry: '/new /sessions /resume', adapter: 'agents and sessionPersistence' },
-  { id: 'rename', entry: '/rename', adapter: 'sessionTitle.rename' },
-  { id: 'export', entry: '/export', adapter: 'sessionQuery and attachment storage' },
-  { id: 'attachments', entry: '/attach', adapter: 'attachments.save' },
-  { id: 'skills', entry: '/skills and /<skill>', adapter: 'skill registry and Agent prompt injection' },
-  { id: 'subagents', entry: '/subagents and @ menu', adapter: 'subagents.list/listChildren' },
-  { id: 'tools', entry: 'model tool calls', adapter: 'Agent tool runtime' },
-  { id: 'approvals', entry: 'approval panel', adapter: 'approval/request' },
-  { id: 'questions', entry: 'question panel', adapter: 'userQuestions provider' },
-  { id: 'jobs', entry: '/jobs /job-read /job-kill', adapter: 'jobs gateway' },
-  { id: 'workflows', entry: '/ workflow commands', adapter: 'Harness command registry' },
-  { id: 'deliverables', entry: 'transcript events', adapter: 'session/event presenter' },
-  { id: 'trajectory', entry: '/trajectory', adapter: 'Session.events' },
-  { id: 'workspace', entry: '/workspace', adapter: 'workspaceRegistry' },
-  { id: 'settings', entry: '/settings', adapter: 'settings.describe' },
-  { id: 'plugins', entry: '/plugins', adapter: 'pluginInventory.list' },
-  { id: 'feedback', entry: '/feedback', adapter: 'Harness command registry' },
+  { id: 'prompt', entry: 'composer', service: 'Agent.followup', effect: 'execute', testId: 'controller:prompt', status: 'mapped' },
+  { id: 'cancel', entry: 'Ctrl+C', service: 'Agent.cancel', effect: 'execute', testId: 'controller:cancel', status: 'mapped' },
+  { id: 'commands', entry: '/ menu', service: 'CommandRuntime.list/execute', effect: 'execute', testId: 'catalog:dynamic', status: 'mapped' },
+  { id: 'model', entry: '/models /model', service: 'LlmRuntime + ModelSelectionRef', effect: 'write', testId: 'terminal:model', status: 'mapped' },
+  { id: 'credentials', entry: '/credentials', service: 'CredentialProvider', effect: 'write', testId: 'terminal:credentials', status: 'mapped' },
+  { id: 'permission', entry: '/permission + approval panel', service: 'PermissionPresetService + approval/request', effect: 'write', testId: 'decision:approval', status: 'mapped' },
+  { id: 'plan', entry: '/plan', service: 'CommandRuntime', effect: 'write', testId: 'catalog:harness', status: 'mapped' },
+  { id: 'goal', entry: '/goal', service: 'CommandRuntime', effect: 'write', testId: 'catalog:harness', status: 'mapped' },
+  { id: 'preset', entry: '/presets /preset', service: 'AgentPresets', effect: 'write', testId: 'terminal:preset', status: 'mapped' },
+  { id: 'sessions', entry: '/new /sessions /resume', service: 'AgentFactory + SessionPersistence', effect: 'write', testId: 'terminal:sessions', status: 'mapped' },
+  { id: 'session-search', entry: '/sessions <query>', service: 'SessionQueryEngine.searchSessions', effect: 'read', testId: 'terminal:session-search', status: 'mapped' },
+  { id: 'session-stats', entry: '/stats', service: 'SessionProjectionRegistry.sessionStats', effect: 'read', testId: 'terminal:stats', status: 'mapped' },
+  { id: 'rename', entry: '/rename', service: 'SessionTitleService.rename', effect: 'write', testId: 'terminal:rename', status: 'mapped' },
+  { id: 'export', entry: '/export', service: 'SessionQueryEngine + AttachmentStore', effect: 'read', testId: 'export:archive', status: 'mapped' },
+  { id: 'attachments', entry: '/attach', service: 'AttachmentStore.save', effect: 'write', testId: 'terminal:attachment', status: 'mapped' },
+  { id: 'skills', entry: '/skills + /<skill>', service: 'SkillRegistry', effect: 'execute', testId: 'catalog:skill', status: 'mapped' },
+  { id: 'subagents', entry: '@ menu /subagents', service: 'SubagentRegistry', effect: 'execute', testId: 'composer:subagent', status: 'mapped' },
+  { id: 'tools', entry: 'transcript tool cards', service: 'Agent tool runtime', effect: 'execute', testId: 'presenter:tool', status: 'mapped' },
+  { id: 'approvals', entry: 'approval panel', service: 'approval/request', effect: 'write', testId: 'decision:approval', status: 'mapped' },
+  { id: 'questions', entry: 'question panel', service: 'UserQuestionsService', effect: 'write', testId: 'decision:questions', status: 'mapped' },
+  { id: 'jobs', entry: '/jobs /job-read /job-kill', service: 'JobsService', effect: 'write', testId: 'terminal:jobs', status: 'mapped' },
+  { id: 'workflows', entry: '/ menu + transcript cards', service: 'WorkflowEngine', effect: 'execute', testId: 'presenter:workflow', status: 'mapped' },
+  { id: 'deliverables', entry: 'transcript deliverables', service: 'SessionEvent surface', effect: 'read', testId: 'presenter:deliverables', status: 'mapped' },
+  { id: 'trajectory', entry: '/trajectory', service: 'Session.events', effect: 'read', testId: 'terminal:trajectory', status: 'mapped' },
+  { id: 'workspace', entry: '/workspace', service: 'WorkspaceRegistry', effect: 'write', testId: 'terminal:workspace', status: 'mapped' },
+  { id: 'settings', entry: '/settings', service: 'SettingsProvider.describe/mutate', effect: 'write', testId: 'terminal:settings', status: 'mapped' },
+  { id: 'plugins', entry: '/plugins', service: 'PluginInventoryGateway', effect: 'read', testId: 'terminal:plugins', status: 'mapped' },
+  { id: 'session-feedback', entry: '/feedback', service: 'CommandRuntime', effect: 'write', testId: 'catalog:harness', status: 'mapped' },
+  { id: 'message-feedback', entry: '/message-feedback', service: 'MessageFeedbackService', effect: 'write', testId: 'terminal:message-feedback', status: 'mapped' },
 ]

@@ -112,7 +112,10 @@ export async function runLauncher(args: readonly string[], options: LauncherOpti
 
   if (needsBootstrap) {
     write('dsh-cli: configuring the isolated terminal profile...\n')
-    const installed = await runDsh(['plugin', '--profile', PROFILE_NAME, 'add', packageRoot], true)
+    // A file: install copies the package into the profile instead of linking
+    // back to the global npm directory. Its peer imports can then resolve the
+    // dsh-managed profiles/node_modules fallback and share dsh's Cordis graph.
+    const installed = await runDsh(['plugin', '--profile', PROFILE_NAME, 'add', `file:${packageRoot}`], true)
     if (installed.code !== 0) {
       write(`dsh-cli: profile setup failed with exit code ${installed.code}.\n`)
       return installed.code

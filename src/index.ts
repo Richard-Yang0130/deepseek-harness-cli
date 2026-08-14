@@ -30,17 +30,25 @@ import { runLineMode, type TerminalIo } from './line-mode.js'
 import { exportSessionArchive } from './export-session.js'
 import type { TuiStartupValues } from './startup.js'
 import { answerQuestions, parseTerminalInput, renderSessionEvent } from './terminal-ui.js'
+import {
+  credentialsOperation, messageFeedbackOperation, modelsOperation, sessionSearchOperation, settingsOperation,
+  type CredentialsLike, type MessageFeedbackLike, type SettingsLike,
+} from './operations.js'
 
 export const name = 'tui-runner'
 export const inject = [
   'agentDefaultModel',
   'agents',
   'attachments',
+  'agentPresets',
+  'credentials',
   'jobs',
   'llm',
+  'messageFeedback',
   'sessions',
   'sessionPersistence',
   'sessionQuery',
+  'sessionProjections',
   'sessionTitle',
   'settings',
   'subagents',
@@ -50,6 +58,7 @@ export const inject = [
 
 const TERMINAL_COMMANDS: readonly LocalCommandDefinition[] = [
   { name: 'attach', description: 'Attach an image to the next prompt', source: 'terminal', hint: '<path>' },
+  { name: 'credentials', description: 'Inspect or update credential references', source: 'terminal', hint: '<status|set|unset> …' },
   { name: 'exit', description: 'Quit the terminal session', source: 'terminal' },
   { name: 'export', description: 'Export this session and descendants as ZIP', source: 'terminal', hint: '[path]' },
   { name: 'help', description: 'Show terminal commands', source: 'terminal' },
@@ -57,14 +66,19 @@ const TERMINAL_COMMANDS: readonly LocalCommandDefinition[] = [
   { name: 'job-read', description: 'Read background job output', source: 'terminal', hint: '<job-id>' },
   { name: 'jobs', description: 'List background jobs', source: 'terminal' },
   { name: 'model', description: 'Show or switch this session model', source: 'terminal', hint: '[provider model]' },
+  { name: 'models', description: 'List active model providers and models', source: 'terminal' },
+  { name: 'message-feedback', description: 'List or change assistant-message feedback', source: 'terminal', hint: '[list|put|delete] …' },
   { name: 'new', description: 'Start a new persisted session', source: 'terminal' },
   { name: 'plugins', description: 'List loaded Harness plugins', source: 'terminal' },
+  { name: 'preset', description: 'Start a new session with an agent preset', source: 'terminal', hint: '<preset-id>' },
+  { name: 'presets', description: 'List available agent presets', source: 'terminal' },
   { name: 'rename', description: 'Rename the active session', source: 'terminal', hint: '<title>' },
   { name: 'resume', description: 'Resume a persisted session', source: 'terminal', hint: '<session-id>' },
-  { name: 'sessions', description: 'List persisted sessions', source: 'terminal' },
-  { name: 'settings', description: 'Show redacted Harness settings', source: 'terminal' },
+  { name: 'sessions', description: 'List or full-text search persisted sessions', source: 'terminal', hint: '[query]' },
+  { name: 'settings', description: 'Inspect or edit redacted Harness settings', source: 'terminal', hint: '[show|set|unset] …' },
   { name: 'skills', description: 'List user-invocable skills', source: 'terminal' },
   { name: 'subagents', description: 'List subagent providers', source: 'terminal' },
+  { name: 'stats', description: 'Show whole-session usage and timing statistics', source: 'terminal' },
   { name: 'trajectory', description: 'Show the durable session event trajectory', source: 'terminal' },
   { name: 'workspace', description: 'Start a session in another workspace', source: 'terminal', hint: '<path>' },
 ]
@@ -76,10 +90,15 @@ const HELP = [
   '  /resume <id>          resume a persisted session',
   '  /rename <title>       rename the active session',
   '  /model [provider id]  show or switch the model for this session',
+  '  /models               list model providers and advertised models',
+  '  /credentials …        inspect, set, or unset a credential reference',
+  '  /presets              list available agent presets',
+  '  /preset <id>          start a new session with a preset',
   '  /workspace <path>     start a session in another workspace',
   '  /attach <image>       attach an image to the next prompt',
   '  /jobs                 list background jobs',
-  '  /settings             show redacted settings',
+  '  /settings …           show or mutate settings through the settings service',
+  '  /message-feedback …  list or change feedback for assistant messages',
   '  /plugins              list loaded plugins',
   '  /export [path]        export the session tree and images as ZIP',
   '  /exit                 quit',
@@ -127,6 +146,17 @@ function line(io: TerminalIo, text = ''): void {
   io.write(text + '\n')
 }
 
+interface AgentPresetsLike {
+  readonly defaultId: string
+  list(): Promise<readonly { readonly id: string; readonly trust: string; readonly broken?: string }[]>
+  resolve(id?: string): Promise<{ readonly id: string }>
+  mount(agentCtx: Context, id?: string): Promise<{ readonly id: string }>
+}
+
+interface SessionProjectionsLike {
+  snapshot(session: Agent['session']): { readonly values: Record<string, unknown> }
+}
+
 class HarnessTerminalServices implements TuiServices {
   private handle: AgentHandle | undefined
   private streaming = false
@@ -137,6 +167,7 @@ class HarnessTerminalServices implements TuiServices {
   private decisions: TuiDecisionHandlers | undefined
   private pendingImages: ImageAttachmentRef[] = []
   private subagentRefs: readonly string[] = []
+  private presetId: string | undefined
 
   constructor(
     private readonly ctx: Context,
@@ -201,11 +232,15 @@ class HarnessTerminalServices implements TuiServices {
     permission: string
   } {
     const selected = this.selection?.current
+    const projections = this.ctx.get('sessionProjections') as SessionProjectionsLike | undefined
+    const permissions = this.handle === undefined
+      ? undefined
+      : projections?.snapshot(this.agent.session).values.permissions as { preset?: string } | undefined
     return {
       cwd: this.handle?.agent.session.header.cwd ?? process.cwd(),
       ...(this.handle === undefined ? {} : { sessionId: this.agent.id }),
       ...(selected === undefined ? {} : { provider: selected.provider, model: selected.model }),
-      permission: 'approval',
+      permission: permissions?.preset ?? 'approval',
     }
   }
 
@@ -239,7 +274,34 @@ class HarnessTerminalServices implements TuiServices {
       if (args === '') return 'Usage: /job-kill <job-id>'
       return `Job ${args}: ${this.ctx.jobs.kill(JobId(args), this.agent, 'stopped from dsh-cli')}`
     }
-    if (line === '/settings') return JSON.stringify(this.ctx.settings.describe({ redactSecrets: true }), null, 2)
+    if (line === '/models') return await modelsOperation(this.ctx.llm)
+    if (line === '/credentials' || line.startsWith('/credentials ')) {
+      return await credentialsOperation(this.ctx.get('credentials') as CredentialsLike, args)
+    }
+    if (line === '/settings' || line.startsWith('/settings ')) {
+      return await settingsOperation(this.ctx.settings as unknown as SettingsLike, args)
+    }
+    if (line === '/message-feedback' || line.startsWith('/message-feedback ')) {
+      return await messageFeedbackOperation(
+        this.ctx.get('messageFeedback') as MessageFeedbackLike,
+        this.agent.id,
+        args,
+      )
+    }
+    if (line === '/presets') return await this.presetsText()
+    if (line === '/preset' || line.startsWith('/preset ')) {
+      if (args === '') return 'Usage: /preset <preset-id>'
+      await this.open(undefined, this.agent.session.header.cwd ?? process.cwd(), args)
+      return `Agent preset: ${this.presetId}`
+    }
+    if (line === '/stats') {
+      const projections = this.ctx.get('sessionProjections') as SessionProjectionsLike
+      const stats = projections.snapshot(this.agent.session).values.sessionStats
+      return stats === undefined ? 'Session statistics are not mounted.' : JSON.stringify(stats, null, 2)
+    }
+    if (line.startsWith('/sessions ')) {
+      return await sessionSearchOperation(this.ctx.sessionQuery, args)
+    }
     if (line === '/plugins') {
       const inventory = this.ctx.get('pluginInventory') as PluginInventoryGateway | undefined
       return inventory === undefined ? 'Plugin inventory is not mounted.' : JSON.stringify(inventory.list(), null, 2)
@@ -344,21 +406,31 @@ class HarnessTerminalServices implements TuiServices {
     this.ctx.effect(() => disposeQuestions, 'tui: user-questions provider')
   }
 
-  private async open(resume?: string, cwd = process.cwd()): Promise<void> {
+  private async open(resume?: string, cwd = process.cwd(), requestedPreset?: string): Promise<void> {
     await this.handle?.dispose()
     const model = modelSetup(this.ctx)
     this.selection = model.ref
+    const presets = this.ctx.get('agentPresets') as AgentPresetsLike
+    const resumeMeta = resume === undefined
+      ? undefined
+      : (await this.ctx.sessionPersistence.inspect(SessionId(resume))).meta as { agentPreset?: string }
+    const resolvedPreset = await presets.resolve(requestedPreset ?? resumeMeta?.agentPreset)
+    this.presetId = resolvedPreset.id
+    const setup = async (agentCtx: Context): Promise<void> => {
+      model.setup(agentCtx)
+      await presets.mount(agentCtx, resolvedPreset.id)
+    }
     this.handle = resume === undefined
       ? await this.ctx.agents.create({
         sessionId: SessionId(`session-${randomUUID()}`),
-        meta: { cwd },
+        meta: { cwd, agentPreset: resolvedPreset.id },
         agentOptions: this.ctx.agentDefaultModel.currentSelection(),
-        setup: (agentCtx) => { model.setup(agentCtx) },
+        setup,
       })
       : await this.ctx.agents.resume({
         resumeSessionId: SessionId(resume),
         agentOptions: this.ctx.agentDefaultModel.currentSelection(),
-        setup: (agentCtx) => { model.setup(agentCtx) },
+        setup,
       })
     await this.agent.whenIdle()
     await this.refreshSkills()
@@ -423,6 +495,16 @@ class HarnessTerminalServices implements TuiServices {
     return sessions.sort((left, right) => right.createdAt - left.createdAt).map((session) => {
       const active = session.id === this.agent.id ? '*' : ' '
       return `${active} ${session.id}  ${new Date(session.createdAt).toLocaleString()}  ${session.cwd ?? ''}`.trimEnd()
+    }).join('\n')
+  }
+
+  private async presetsText(): Promise<string> {
+    const presets = this.ctx.get('agentPresets') as AgentPresetsLike
+    const rows = await presets.list()
+    return rows.length === 0 ? 'No agent presets.' : rows.map(preset => {
+      const active = preset.id === this.presetId ? '*' : ' '
+      const state = preset.broken === undefined ? preset.trust : `broken: ${preset.broken}`
+      return `${active} ${preset.id}  ${state}`
     }).join('\n')
   }
 
