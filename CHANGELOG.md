@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2 — 2026-08-14
+
+- Make npm's `github:` installer package the committed runtime instead of leaving a dangling link to its temporary clone.
+
 ## 0.1.1 — 2026-08-14
 
 - Ship compiled runtime files in Git so `npm install -g github:…` does not depend on development tools during installation.
