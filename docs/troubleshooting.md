@@ -1,52 +1,47 @@
 # Troubleshooting
 
-## `dsh was not found`
-
-Install the official runtime and verify it is on `PATH`:
+## `dsh CLI not found`
 
 ```bash
 npm install -g @deepseek-ai/dsh
 dsh --version
 ```
 
-## `pnpm not found on PATH`
+## `pnpm` is unavailable
 
-The official `dsh plugin` command uses pnpm to manage isolated profiles:
+The official profile manager delegates installs to pnpm:
 
 ```bash
-npm install -g pnpm
+corepack enable pnpm
 pnpm --version
 ```
 
-## Unsupported dsh version
+## Profile version mismatch
 
-Update dsh:
+Align the installed profile with the global launcher:
 
 ```bash
-npm install -g @deepseek-ai/dsh@latest
+dsh plugin --profile dsh-cli add deepseek-harness-cli@latest
 ```
 
-This release supports `>=0.1.0-rc.6 <0.2.0`.
+The launcher refuses a profile whose minor version is older because its patch may reference exports that the installed package lacks. A newer profile prints a warning but can continue.
 
-## Profile setup failed
-
-Run:
+## Inspect the installation
 
 ```bash
 dsh-cli doctor
-dsh plugin --profile dsh-cli install
 ```
 
-If the profile was manually edited and is no longer recoverable, move `$DSH_HOME/profiles/dsh-cli` aside and launch `dsh-cli` again to create a clean profile. Moving it preserves the old files for inspection.
+The active package is `deepseek-harness-cli`, preferences are `~/.dsh-cli`, and configuration variables use `DSH_CLI_`.
 
-## Session search is unavailable
+## Theme or layout problems
 
-The official base profile keeps ranked SQLite full-text search disabled unless the deployment opts in. `dsh-cli` automatically falls back to `SessionQueryEngine.filterEvents`, which performs a case-insensitive literal scan. Enable the SQLite backend only when ranking and indexed search are required.
+Try `DSH_CLI_THEME=dark-ansi dsh-cli` for terminals without true-color support. The whale hides automatically in narrow layouts; command and decision panels remain available.
 
-## Terminal is too narrow
+## Piped output contains terminal escapes
 
-At 72 columns and wider, `dsh-cli` shows the bordered two-column welcome box. Below 72 columns it switches to a compact `🐳 DeepSeek Harness` header so the command menu and decisions remain usable.
+Non-TTY startup selects the plain reporter and should emit no ANSI. Run `pnpm verify:plain-reporter` from a source checkout if this regresses.
 
-## Resetting a credential
+## Recovering profile configuration
 
-Use `/credentials unset <ref>`. The terminal never reveals the previous value. A read-only environment source can shadow the writable store; `status` reports its source and writability.
+Before the managed migration, existing profile files are copied under `$DSH_HOME/profiles/dsh-cli/.deepseek-harness-cli-backups/migration-v1/`. Restore by copying the required file back while `dsh-cli` is stopped. No migration path deletes the backup or original session data.

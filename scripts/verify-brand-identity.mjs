@@ -44,6 +44,10 @@ async function sourceFiles(path) {
   return files
 }
 
+async function markdownFiles(path) {
+  return (await sourceFiles(path)).filter(file => file.endsWith('.md') && !file.startsWith('docs/superpowers/'))
+}
+
 const visibleBrandFiles = [
   ...await sourceFiles('src'),
   ...await sourceFiles('bin'),
@@ -61,6 +65,36 @@ for (const file of visibleBrandFiles) {
   const content = await readFile(new URL(`../${file}`, import.meta.url), 'utf8')
   for (const forbidden of forbiddenVisibleBrands) {
     if (content.includes(forbidden)) failures.push(`${file}: ${forbidden}`)
+  }
+}
+
+const documentationFiles = ['README.md', 'README.zh.md', ...await markdownFiles('docs')]
+const forbiddenDocumentationContracts = [
+  '@deepseek-harness-tui/dsh-tui',
+  'npm install -g dsh-tui',
+  'dsh --profile dsh-tui',
+  'DSH_TUI_',
+  'CC_TUI_',
+  'DSH_CC_',
+]
+for (const file of documentationFiles) {
+  const content = await readFile(new URL(`../${file}`, import.meta.url), 'utf8')
+  for (const forbidden of forbiddenDocumentationContracts) {
+    if (content.includes(forbidden)) failures.push(`${file}: ${forbidden}`)
+  }
+}
+
+for (const file of ['README.md', 'README.zh.md']) {
+  const content = await readFile(new URL(`../${file}`, import.meta.url), 'utf8')
+  for (const required of [
+    'npm install -g @deepseek-ai/dsh deepseek-harness-cli',
+    'dsh-cli',
+    'dsh-cli --resume',
+    'dsh-cli doctor',
+    '~/.dsh-cli',
+    'DSH_CLI_',
+  ]) {
+    if (!content.includes(required)) failures.push(`${file}: missing ${required}`)
   }
 }
 
