@@ -1,111 +1,226 @@
-# DeepSeek Harness CLI
+# deepseek-harness-cli
 
-`deepseek-harness-cli` 是 DeepSeek Harness 的完整终端界面。它把官方 Harness Agent 运行时与响应式 Ink UI 结合起来：动态鲸鱼页头、流式回答与工具卡片、持久会话、审批、结构化提问、命令补全、主题，以及行内/全屏两种布局。
+这是 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 的 Claude Code 风格终端界面。它不复制、不修改 Web 端，而是把终端操作映射到官方 `dsh` 使用的同一组 Harness 服务。
 
-![DeepSeek Harness CLI 终端界面](docs/assets/terminal.png)
+![终端界面](docs/assets/terminal.png)
+
+## 主要能力
+
+- Ink 交互式终端界面，包含 Claude Code 风格欢迎框、紧凑 🐳 标识、快速上手提示和本次更新。
+- 输入 `/` 后，命令菜单从输入框向下展开；方向键选择，Enter 确认。
+- DeepSeek 工作期间可以继续输入消息，在下一步边界调整当前任务方向，不会另开一轮。
+- Todo 列表会在原位置实时更新，并区分等待、进行中和已完成状态。
+- 输入 `/subagents` 可查看子代理提供方和子会话状态。
+- 支持持久化会话、新建、恢复、重命名、全文检索、导出、工作区切换、图片附件、后台任务、Skills、子代理、审批、结构化提问、模型、凭据、Agent 预设、设置、插件、MCP 工具、会话统计和消息反馈。
+- `/permission`、`/plan`、`/goal`、`/feedback`、工作流以及插件贡献的命令，直接使用 dsh 动态命令注册表，不做假实现。
+- 原有 `dsh web` 完整保留；终端版使用独立的 `dsh-cli` profile，互不覆盖。
+
+## 环境要求
+
+- macOS、Linux 或 Windows 终端
+- Node.js 22 或更高版本
+- `npm` 和 `pnpm` 均可在终端直接执行
+- `@deepseek-ai/dsh` 版本不低于 `0.1.0-rc.6`，且低于 `0.2.0`
 
 ## 安装
 
-需要 Node.js 22.19 或更高版本、npm 和 pnpm（可执行 `corepack enable pnpm`）。
+先安装官方 dsh，再安装本项目：
 
 ```bash
-npm install -g @deepseek-ai/dsh deepseek-harness-cli
+npm install -g @deepseek-ai/dsh
+npm install -g https://github.com/Richard-Yang0130/deepseek-harness-cli/archive/refs/heads/main.tar.gz
 ```
 
-在项目目录中启动：
+两条命令分别执行，一行一条。如果本机已经安装了兼容版本的 dsh，第一行可以跳过。
+
+进入希望 DeepSeek 操作的项目目录，然后直接输入：
 
 ```bash
 dsh-cli
+```
+
+首次启动时，`dsh-cli` 会自动创建独立的 `dsh-cli` profile，并把终端 bundle 安装进去；以后会直接复用。这个过程不会改动 Web profile，也不会影响原来的 `dsh web`。
+
+也可以带首条任务、恢复历史会话或只做环境检查：
+
+```bash
 dsh-cli "检查这个仓库"
-dsh-cli --resume
+dsh-cli --resume <session-id>
 dsh-cli doctor
 ```
 
-首次启动会创建隔离的 `dsh-cli` profile，并安装与启动器版本一致的包。受管 profile 迁移前会先备份；程序不会自动删除原 profile、会话或偏好数据。
+`doctor` 只检查 dsh 版本和 profile 状态，不会启动交互界面。
 
-## 终端体验
+## 基本操作
 
-- DeepSeek 动态鲸鱼与 `DSH CLI` 标识，窄终端会自动降级为紧凑布局。
-- 流式助手文本、可选思考过程、实时工具卡片、活动计时、token/上下文压力与 TPS 状态。
-- `/` 命令菜单与子命令补全；`@` 文件补全与粘贴图片。
-- 持久会话恢复、重命名、回退、导出、历史搜索与工作区切换。
-- 键盘审批与结构化问题面板，遵循 Harness 的失败关闭权限语义。
-- 剪贴板复制、全屏鼠标选择、保留普通终端回滚的行内模式，以及 CJK 宽字符布局。
-- 浅色、深色、ANSI 和用户自定义主题。
-- stdin 或 stdout 不是 TTY 时，自动切换为无 ANSI 的纯文本输出。
+- Enter：发送当前输入。
+- DeepSeek 工作期间按 Enter：把输入作为 steering 送入当前任务，不会启动第二轮。
+- `/`：在输入框下方打开命令菜单。
+- ↑ / ↓：选择命令；Enter：补全；Esc：关闭菜单。
+- `/subagents`：列出子代理提供方和子会话状态。
+- Ctrl+C：运行中取消当前轮；空闲时退出。
 
-DSH 命令注册表始终是真实能力来源。当前 profile 提供的 `/permission`、`/plan`、`/goal` 等命令会动态出现，并原样接收参数。
+常用命令：
 
-## 常用操作
-
-| 输入 | 作用 |
-|---|---|
-| Enter | 发送提示；当前轮运行时，在下一个 step 边界转向 |
-| Ctrl+C | 取消当前轮；空闲时再按退出 |
-| `/` | 打开命令补全 |
-| `@` | 补全工作区文件 |
-| Shift+Tab | 在已配置的会话模式中切换 |
-| Ctrl+O | 切换详细思考/工具输出 |
-| Ctrl+T | 切换轨迹面板 |
-| Esc | 关闭当前选择器或决策面板 |
-
-常用命令包括 `/new`、`/resume`、`/rewind`、`/rename`、`/export`、`/workspace`、`/model`、`/preset`、`/theme`、`/lang`、`/provider`、`/permissions`、`/mcp`、`/agents`、`/cost`、`/doctor` 和 `/help`。
-
-兼容别名在唯一命令分发边界转换，不复制功能实现：
-
-| 旧命令 | 当前命令 |
-|---|---|
-| `/sessions` | `/resume` |
-| `/models` | `/model` |
-| `/presets` | `/preset` |
-| `/stats` | `/cost` |
-| `/subagents` | `/agents` |
-
-## 运行时约定
-
-- npm 包：`deepseek-harness-cli`
-- 命令：`dsh-cli`
-- DSH profile：`dsh-cli`
-- 偏好目录：`~/.dsh-cli`
-- 环境变量前缀：`DSH_CLI_`
-- profile patch：`~/.dsh/profiles/dsh-cli/cordis.patch.yml`（或 `$DSH_HOME/profiles/dsh-cli/cordis.patch.yml`）
-
-常用环境变量：
-
-```bash
-export DSH_CLI_LANG=zh
-export DSH_CLI_THEME=dark
-export DSH_CLI_WORKSPACE_TARGET=/path/to/project
+```text
+/new                              新建持久化会话
+/sessions [query]                 列出会话或全文检索
+/resume <session-id>              恢复会话
+/rename <title>                   修改会话标题
+/models                           列出 Provider 和模型
+/model <provider> <model>         切换当前会话模型
+/presets                          列出 Agent 预设
+/presets read <id>                查看预设组成
+/presets copy <from> <id> [name]  复制为可编辑预设
+/presets remove <id>              删除用户预设
+/preset <id>                      用指定预设开启新会话
+/settings                         查看脱敏设置
+/settings set <ns> <path> <json>  修改设置
+/settings unset <ns> <path>       删除设置覆盖
+/credentials status <ref>         查看凭据状态，不显示值
+/credentials set <ref> <env>      从环境变量安全写入
+/credentials unset <ref>          删除可写凭据
+/workspace <path>                 切换工作区并新建会话
+/attach <image-path>              给下一条消息附加图片
+/jobs                             查看后台任务
+/job-read <job-id>                读取任务输出
+/job-kill <job-id>                停止任务
+/stats                            查看完整会话统计
+/message-feedback ...             管理单条助手消息反馈
+/trajectory                       查看持久化事件轨迹
+/export [path]                    导出会话树和附件 ZIP
+/plugins                          查看实际加载的插件
 ```
 
-启动器会以只读方式兼容迁移前的偏好目录和已改名环境变量，但所有新写入都使用上述约定。
+完整说明见 [命令参考](docs/commands.md)、[Web → 终端能力映射](docs/capability-matrix.md) 和 [故障排查](docs/troubleshooting.md)。
 
-## 配置与扩展
+## 接入 MCP 服务器
 
-profile 是基于官方 DSH 服务的 Cordis 组合。可在 profile patch 中添加 MCP 客户端或其他兼容插件，修改后重启 `dsh-cli`。密钥应通过环境变量引用，不要直接写入 YAML。
+`dsh-cli` 可以加载官方 dsh 随附的 `@deepseek-ai/dsh-mcp-client`。默认不会启用任何服务器，因为 stdio MCP 服务器是在 Agent 沙箱之外运行的受信任进程。
 
-延伸阅读：
+先启动一次 `dsh-cli`，让独立 profile 完成创建；退出后编辑：
 
-- [快速上手](docs/getting-started.md)
-- [配置](docs/configuration.md)
-- [交互模型](docs/interaction.md)
-- [命令参考](docs/commands.md)
-- [主题](docs/themes.md)
-- [插件与 MCP](docs/plugins.md)
-- [架构](docs/architecture.md)
-- [故障排查](docs/troubleshooting.md)
+```text
+$DSH_HOME/profiles/dsh-cli/cordis.patch.yml
+```
+
+如果没有设置 `DSH_HOME`，默认路径是 `$HOME/.dsh`。该文件是 Cordis patch 数组。接入 stdio 服务器时添加一个实例：
+
+```yaml
+- insert:
+    - id: mcp-example
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: example
+        transport: stdio
+        command: npx
+        args: ['-y', 'your-mcp-server-package']
+        env:
+          MCP_TOKEN: !!js process.env.MCP_TOKEN
+```
+
+接入 Streamable HTTP 服务器时使用：
+
+```yaml
+- insert:
+    - id: mcp-example-http
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: example_http
+        transport: streamable-http
+        url: http://127.0.0.1:3000/mcp
+        headers:
+          Authorization: !!js '`Bearer ${process.env.MCP_TOKEN}`'
+```
+
+每个运行中的服务器都必须使用唯一的 `serverName`，格式为 `[A-Za-z0-9_-]{1,32}`。修改 patch 后要重启 `dsh-cli`，因为此 profile 禁用了热更新。发现的工具会以 `mcp__<serverName>__<tool>` 注册为 Harness 原生工具。`/plugins` 可以确认客户端实例是否加载，但目前没有 `/mcp` 命令，也不能在终端查看服务器健康状态。没有专用 presenter 的 MCP 调用会显示原始工具名和 JSON 参数。
+
+密钥应像示例一样从环境变量读取，不要把明文写入 YAML。初次连接失败时，默认的 `failOnStartupError: false` 会让 CLI 正常启动，只是不注册该服务器的工具。
+
+## 凭据使用示例
+
+为了避免密钥出现在命令、回显或 README 中，终端版不会接收明文密钥参数。先在启动 `dsh-cli` 的 shell 中设置一个临时来源变量：
+
+```bash
+export SOURCE_DEEPSEEK_KEY='你的密钥'
+dsh-cli
+```
+
+再在界面内执行：
+
+```text
+/credentials set DEEPSEEK_API_KEY SOURCE_DEEPSEEK_KEY
+```
+
+程序只会显示“已保存”，不会输出密钥值。
+
+## 设置修改示例
+
+查看所有已注册、已脱敏的设置命名空间：
+
+```text
+/settings
+```
+
+写入一个 JSON 值：
+
+```text
+/settings set agent-presets default "standard"
+```
+
+撤销用户层覆盖，让它重新继承组合默认值：
+
+```text
+/settings unset agent-presets default
+```
+
+所有设置写入都经过 `SettingsProvider.mutate`，带 revision 冲突检查；不会直接修改 Harness 存储文件。
+
+## 消息反馈
+
+先列出当前会话已有反馈和可用的 message id：
+
+```text
+/message-feedback list
+```
+
+写入或更新反馈：
+
+```text
+/message-feedback put <message-id> positive 很有帮助
+/message-feedback put <message-id> negative 这里需要修正
+```
+
+删除反馈：
+
+```text
+/message-feedback delete <message-id>
+```
+
+写入使用 MessageFeedbackService 的版本比较机制，避免覆盖并发修改。
+
+## 与 Web 的关系
+
+终端版和 Web 端共享以下核心：会话日志、模型路由、凭据、设置、权限、Agent 预设、命令、工具、Skills、子代理、后台任务、工作流、附件、反馈和投影统计。Web 专属的鼠标布局、浏览器下载弹窗等视觉交互，在终端中替换为等价的命令和文本呈现。
+
+本项目只包含终端代码、启动器、Cordis patch、测试和文档。用户仍需单独安装官方 dsh。
 
 ## 更新与卸载
 
-可在已安装 profile 中执行 `/update`，或更新全局包：
+GitHub 安装方式通过重新安装更新：
 
 ```bash
-npm install -g @deepseek-ai/dsh@latest deepseek-harness-cli@latest
+npm install -g https://github.com/Richard-Yang0130/deepseek-harness-cli/archive/refs/heads/main.tar.gz
+```
+
+卸载终端命令：
+
+```bash
 npm uninstall -g deepseek-harness-cli
 ```
 
-卸载包不会删除 `~/.dsh-cli` 或 `$DSH_HOME/profiles/dsh-cli`。
+独立 profile 默认保留在 `$HOME/.dsh/profiles/dsh-cli`，便于以后重装继续使用。需要彻底清理时，可在确认路径后自行删除该目录。
 
-## 项目定位
+## 项目性质
 
-这是独立社区终端界面，不是 DeepSeek 官方发布。项目使用 DeepSeek Harness 的公开服务契约，并以 MIT 许可证发布。
+这是独立的社区终端界面，不是 DeepSeek 官方发布。项目依赖官方 `@deepseek-ai/dsh`，遵循其公开服务接口。许可证为 MIT。
