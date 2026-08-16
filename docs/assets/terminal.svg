@@ -1,27 +1,58 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="594" viewBox="0 0 1320 594">
-<rect width="100%" height="100%" rx="22" fill="#181825"/>
-<circle cx="28" cy="26" r="7" fill="#ff5f57"/><circle cx="51" cy="26" r="7" fill="#febc2e"/><circle cx="74" cy="26" r="7" fill="#28c840"/>
-<text x="660" y="31" text-anchor="middle" fill="#8f93aa" font-family="SFMono-Regular, Menlo, monospace" font-size="14">deepseek-harness-cli</text>
-<g font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="16" xml:space="preserve"><text x="42" y="70" fill="#6685ff">╭─ DeepSeek Harness v0.1.7 ──────────────────────────────────────────────────────────────────────╮</text>
-<text x="42" y="92" fill="#6685ff">│                      │ 快速上手                                                                │</text>
-<text x="42" y="114" fill="#6685ff">│          🐳          │ 输入 / 打开命令菜单，Enter 发送                                         │</text>
-<text x="42" y="136" fill="#6685ff">│    Welcome back!     │ 输入 /help 查看全部命令                                                 │</text>
-<text x="42" y="158" fill="#6685ff">│   deepseek-v4-pro    │ ────────────────────────────────────────────────────────────────────────│</text>
-<text x="42" y="180" fill="#6685ff">│…space/example-project│ 本次更新 v0.1.7                                                         │</text>
-<text x="42" y="202" fill="#6685ff">│                      │ • 缩放前清理旧帧，避免边框残影                                          │</text>
-<text x="42" y="224" fill="#6685ff">╰────────────────────────────────────────────────────────────────────────────────────────────────╯</text>
-<text x="42" y="246" fill="#c9cce0"></text>
-<text x="42" y="268" fill="#c9cce0">────────────────────────────────────────────────────────────────────────────────────────────────────</text>
-<text x="42" y="290" fill="#f2f4ff"> ❯ /</text>
-<text x="42" y="312" fill="#c9cce0">────────────────────────────────────────────────────────────────────────────────────────────────────</text>
-<text x="42" y="334" fill="#f2f4ff">  ❯ /help  Show terminal commands  [terminal]</text>
-<text x="42" y="356" fill="#c9cce0">    /models  List model providers and models  [terminal]</text>
-<text x="42" y="378" fill="#c9cce0">    /model  Switch the session model  [terminal]</text>
-<text x="42" y="400" fill="#c9cce0">    /sessions  List or search sessions  [terminal]</text>
-<text x="42" y="422" fill="#c9cce0">    /presets  Manage agent presets  [terminal]</text>
-<text x="42" y="444" fill="#c9cce0">    /settings  Inspect or edit settings  [terminal]</text>
-<text x="42" y="466" fill="#c9cce0">    /plugins  List loaded Harness plugins  [terminal]</text>
-<text x="42" y="488" fill="#c9cce0">    /jobs  List background jobs  [terminal]</text>
-<text x="42" y="510" fill="#c9cce0">────────────────────────────────────────────────────────────────────────────────────────────────────</text>
-<text x="42" y="532" fill="#c9cce0">◆ ready · workspace-write · deepseek-v4-pro</text></g>
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="760" viewBox="0 0 1320 760">
+  <rect width="1320" height="760" rx="24" fill="#10141d"/>
+  <rect width="1320" height="52" rx="24" fill="#181e2a"/>
+  <rect y="28" width="1320" height="24" fill="#181e2a"/>
+  <circle cx="28" cy="26" r="7" fill="#ff5f57"/>
+  <circle cx="51" cy="26" r="7" fill="#febc2e"/>
+  <circle cx="74" cy="26" r="7" fill="#28c840"/>
+  <text x="660" y="31" text-anchor="middle" fill="#8d95a8" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="14">deepseek-harness-cli</text>
+
+  <g font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="16" xml:space="preserve">
+    <text x="58" y="91" fill="#4e6fff">          ▄▄▄▄▄▄▄▄▄</text>
+    <text x="58" y="113" fill="#4e6fff">      ▄▀▀           ▀▀▄</text>
+    <text x="58" y="135" fill="#4e6fff">    ▄▀    ▄▄     ▄▄    ▀▄</text>
+    <text x="58" y="157" fill="#4e6fff">   █     ▀▀  ▄▄  ▀▀      █</text>
+    <text x="58" y="179" fill="#4e6fff">    ▀▄       ▀▀        ▄▀</text>
+    <text x="58" y="201" fill="#b9ddff">      ▀▄▄  DEEPSEEK  ▄▄▀</text>
+    <text x="58" y="223" fill="#4e6fff">         ▀▀▀▀▀▀▀▀▀</text>
+
+    <text x="444" y="91" fill="#7da1de" font-size="20" font-weight="700">✦ DSH CLI</text>
+    <text x="572" y="91" fill="#8d95a8">v0.7.2</text>
+    <text x="444" y="124" fill="#7da1de" font-size="24" font-weight="700">DEEPSEEK HARNESS</text>
+    <text x="444" y="158" fill="#e8e6e0">deepseek-chat · High effort</text>
+    <text x="444" y="184" fill="#8d95a8">~/projects/demo</text>
+    <text x="444" y="216" fill="#8d95a8">Tip: </text>
+    <text x="486" y="216" fill="#e8e6e0">/model</text>
+    <text x="548" y="216" fill="#8d95a8"> switch model · </text>
+    <text x="684" y="216" fill="#e8e6e0">/help</text>
+    <text x="738" y="216" fill="#8d95a8"> view commands</text>
+    <text x="124" y="257" fill="#7da1de" font-weight="700">Explore the uncharted!</text>
+
+    <rect x="42" y="286" width="1236" height="48" rx="8" fill="#292d36"/>
+    <text x="60" y="316" fill="#9aa5b8">❯</text>
+    <text x="86" y="316" fill="#f0eee8">Inspect the project and summarize the architecture.</text>
+
+    <text x="48" y="371" fill="#e8e6e0">⏺ I’ll inspect the repository structure and the main runtime boundaries.</text>
+
+    <rect x="48" y="398" width="1224" height="98" rx="9" fill="#171d28" stroke="#334159"/>
+    <text x="68" y="428" fill="#7da1de" font-weight="700">Read</text>
+    <text x="114" y="428" fill="#8d95a8">package.json, src/dsh-adapter/channel.ts</text>
+    <text x="68" y="458" fill="#8fd3aa">✓</text>
+    <text x="94" y="458" fill="#c7ccd6">Loaded package metadata and the Channel adapter.</text>
+    <text x="68" y="482" fill="#717b8e">  2 files · 41 ms</text>
+
+    <text x="48" y="534" fill="#e8e6e0">⏺ The CLI has four clean layers:</text>
+    <text x="74" y="562" fill="#c7ccd6">• the</text><text x="136" y="562" fill="#b9ddff">dsh-cli</text><text x="202" y="562" fill="#c7ccd6"> launcher and profile composition</text>
+    <text x="74" y="588" fill="#c7ccd6">• official Harness agents, sessions, tools, approvals, and commands</text>
+    <text x="74" y="614" fill="#c7ccd6">• the Channel projection over durable session events</text>
+    <text x="74" y="640" fill="#c7ccd6">• responsive React screens rendered through the Ink terminal core</text>
+
+    <line x1="42" y1="674" x2="1278" y2="674" stroke="#344052"/>
+    <text x="48" y="706" fill="#7da1de">❯</text>
+    <text x="76" y="706" fill="#70798b">Ask a follow-up…</text>
+    <line x1="42" y1="724" x2="1278" y2="724" stroke="#344052"/>
+    <text x="52" y="748" fill="#9aa5b8">  deepseek-chat · 2.4k→612 · ctx 18%</text>
+    <text x="1000" y="748" fill="#7da1de">main</text>
+    <text x="1048" y="748" fill="#9aa5b8"> · demo · ready</text>
+  </g>
 </svg>

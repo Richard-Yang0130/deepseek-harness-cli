@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.2 — 2026-08-17
+
+- Rebuilt the terminal experience on the imported Ink renderer foundation with an animated whale header, streaming reasoning and tool cards, responsive inline/fullscreen layouts, command and file completion, approvals, questions, clipboard selection, themes, trajectory, context pressure, and TPS status.
+- Rebranded the package, executable, Cordis rows, logs, profile, preferences, and environment contracts as `deepseek-harness-cli`, `dsh-cli`, `~/.dsh-cli`, and `DSH_CLI_`.
+- Added a versioned, idempotent profile migration that backs up managed configuration before bootstrap. Original profile files, sessions, preferences, and backups are never deleted.
+- Preserved resume and launch arguments, read-only legacy preference fallbacks, and the compatibility aliases `/sessions`, `/models`, `/presets`, `/stats`, and `/subagents`.
+- Kept DSH registry commands data-driven and added an ANSI-free reporter for piped and other non-TTY executions.
+- Raised the supported Node.js engine to 22.19 or newer and added release, package, renderer, lifecycle, and long-session verification gates.
+
 ## 0.1.7 — 2026-08-14
 
 - Reset Ink's tracked output and clear the visible terminal before resize redraws so terminal reflow cannot leave old welcome rails behind.
