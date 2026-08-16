@@ -1,7 +1,39 @@
 /** Provider-neutral subcommand completion registry for terminal front doors. */
 
 import { Context, Service } from '@deepseek-ai/cordis'
-import type { CommandCompletionNode, LocalizedDescriptions } from '../commands.js'
+import type { CommandCompletionNode, LocalCommand, LocalizedDescriptions } from '../commands.js'
+
+export interface RegistryCommandDescriptor {
+  name: string
+  description: string
+  input?: { hint?: string }
+}
+
+export function registryCommandLine(name: string, rawInput: string): string {
+  return `/${name}${rawInput}`
+}
+
+export function mergeRegistryCommands(
+  local: readonly LocalCommand[],
+  descriptors: readonly RegistryCommandDescriptor[],
+  descriptionsFor: (name: string) => LocalizedDescriptions | undefined = () => undefined,
+  isSkill: (name: string) => boolean = () => false,
+): LocalCommand[] {
+  const merged: LocalCommand[] = [...local]
+  for (const descriptor of descriptors) {
+    if (merged.some(command => command.name === descriptor.name)) continue
+    const descriptions = descriptionsFor(descriptor.name)
+    merged.push({
+      name: descriptor.name,
+      description: descriptor.description,
+      ...(descriptions === undefined ? {} : { descriptions }),
+      tag: descriptor.input?.hint,
+      external: true,
+      ...(isSkill(descriptor.name) ? { skill: true } : {}),
+    })
+  }
+  return merged
+}
 
 export interface TuiCommandTreeProvider {
   /** Root command name without `/`. Must match the command registry entry. */

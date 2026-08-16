@@ -52,7 +52,7 @@ import type { SpinnerMode } from '../components/Spinner/spinnerMode.js'
 import { ActivityTracker, type ActivityState } from 'dsh-working-activity/status'
 import { attachSessionToWorkspace } from './workspace.js'
 import { createLocalWorkspaceRuntime, type TuiWorkspaceCommand, type TuiWorkspaceCommandResult, type TuiWorkspaceTarget } from './workspaces.js'
-import type { TuiCommandTreeRuntime } from './command-trees.js'
+import { mergeRegistryCommands, registryCommandLine, type TuiCommandTreeRuntime } from './command-trees.js'
 
 type ChannelImageBlock = Extract<ContentBlock, { type: 'image' }>
 type ChannelImageMediaType = ChannelImageBlock['attachment']['mediaType']
@@ -1277,7 +1277,7 @@ export function createChannel(
     try {
       const execution = await commandService.execute(
         agent,
-        `/${name}${rawInput}`,
+        registryCommandLine(name, rawInput),
         new AbortController().signal,
       )
       // `undefined` = not registered; a handler error surfaces as its
@@ -2912,25 +2912,14 @@ export function createChannel(
   const refreshCommandList = (): void => {
     const target = agent
     const token = ++commandListSeq
-    const merged: LocalCommand[] = [...LOCAL_COMMANDS]
-    if (commandService) {
-      for (const descriptor of commandService.list(target)) {
-        if (merged.some(command => command.name === descriptor.name)) continue
-        const descriptions = commandTrees?.descriptions(descriptor.name)
-        merged.push({
-          name: descriptor.name,
-          description: descriptor.description,
-          ...(descriptions === undefined ? {} : { descriptions }),
-          tag: descriptor.input?.hint,
-          external: true,
-          // Skills reach the registry as ordinary commands, so the menu would
-          // lose the marker HelpMenu uses to keep them out of the chrome list.
-          // This channel registered them and is the authority on which names
-          // are skills.
-          ...(skillCommands.has(descriptor.name) ? { skill: true } : {}),
-        })
-      }
-    }
+    const merged: LocalCommand[] = commandService === undefined
+      ? [...LOCAL_COMMANDS]
+      : mergeRegistryCommands(
+          LOCAL_COMMANDS,
+          commandService.list(target),
+          name => commandTrees?.descriptions(name),
+          name => skillCommands.has(name),
+        )
     state.commandList = merged
     state.emit()
     // The skill catalog resolves asynchronously (filesystem providers scan
