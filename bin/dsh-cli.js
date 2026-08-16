@@ -39,6 +39,7 @@ const ownVersion = JSON.parse(readFileSync(join(here, '..', 'package.json'), 'ut
 const PACKAGE = 'deepseek-harness-cli'
 const PROFILE = 'dsh-cli'
 const BRAND = 'dsh-cli'
+const doctorRequested = process.argv.length === 3 && process.argv[2] === 'doctor'
 
 applyLegacyEnv()
 
@@ -155,6 +156,13 @@ try {
   ).version
 } catch {
   installedVersion = undefined
+}
+if (doctorRequested) {
+  console.log(`${PACKAGE} v${ownVersion}`)
+  console.log(`dsh: ${String(probe.stdout).trim() || 'available'}`)
+  console.log(`profile ${PROFILE}: ${installedVersion === undefined ? 'not installed' : `v${installedVersion}`}`)
+  console.log(`preferences: ${join(homedir(), '.dsh-cli')}`)
+  process.exit(0)
 }
 if (installedVersion === undefined) {
   const pnpmProbe = spawnSync(...cmd('pnpm', ['--version']), { stdio: 'pipe', ...shellOpt })

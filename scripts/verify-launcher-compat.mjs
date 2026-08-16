@@ -69,4 +69,21 @@ captured = launch([workspace])
 assert.equal(captured.workspace, workspace)
 assert.deepEqual(captured.argv, ['--profile', 'dsh-cli'])
 
-console.log('launcher compatibility OK (resume, continue, prompt, workspace)')
+await writeFile(capture, 'not-launched')
+const doctor = spawnSync(process.execPath, [launcher, 'doctor'], {
+  encoding: 'utf8',
+  env: {
+    ...process.env,
+    PATH: `${fakeBin}${delimiter}${process.env.PATH ?? ''}`,
+    HOME: userHome,
+    DSH_HOME: dshHome,
+    DSH_CLI_CAPTURE: capture,
+    DSH_CLI_LANG: 'en',
+  },
+})
+assert.equal(doctor.status, 0, doctor.stderr)
+assert.match(doctor.stdout, /deepseek-harness-cli v0\.7\.2/u)
+assert.match(doctor.stdout, /profile dsh-cli: v0\.7\.2/u)
+assert.equal(readFileSync(capture, 'utf8'), 'not-launched')
+
+console.log('launcher compatibility OK (resume, continue, prompt, workspace, doctor)')
