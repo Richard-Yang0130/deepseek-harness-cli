@@ -1,10 +1,10 @@
 /**
  * Persisted color-theme preference. The `/theme` choice (built-in palette
- * or user theme name) survives restarts in `~/.dsh-tui/theme.json`, mirroring
- * the working-activity preference (`~/.dsh-tui/working-activity.json`). The
+ * or user theme name) survives restarts in `~/.dsh-cli/theme.json`, mirroring
+ * the working-activity preference (`~/.dsh-cli/working-activity.json`). The
  * file is best-effort: a missing or corrupt file just falls back to the
  * default (terminal-background auto-detection). The preference only wins
- * when DSH_TUI_THEME is unset — see ThemeProvider.
+ * when DSH_CLI_THEME is unset — see ThemeProvider.
  */
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'

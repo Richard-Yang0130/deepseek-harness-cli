@@ -10,7 +10,7 @@
  * make impossible: the OLDEST of 25 sessions shows its persisted title before
  * the rename and the new one after it.
  *
- * Seeds 25 sessions under a temp DSH_TUI_SESSION_ROOT (HOME is also
+ * Seeds 25 sessions under a temp DSH_CLI_SESSION_ROOT (HOME is also
  * redirected so last-used.json and the session index stay in the sandbox),
  * renames the OLDEST one, and asserts:
  *   1. before the rename the deep row already carries its persisted title;
@@ -34,14 +34,14 @@ import { zstdCompressSync } from 'node:zlib'
 
 const root = mkdtempSync(join(tmpdir(), 'dsh-tui-rename-mru-'))
 const home = mkdtempSync(join(tmpdir(), 'dsh-tui-rename-mru-home-'))
-process.env.DSH_TUI_SESSION_ROOT = root
+process.env.DSH_CLI_SESSION_ROOT = root
 // sessionHistory resolves os.homedir() at module load — HOME on POSIX,
 // USERPROFILE on Windows. Set BOTH so a manual run can never write the
 // test's last-used entries into the real user profile.
 process.env.HOME = home
 process.env.USERPROFILE = home
 
-// Import AFTER the env overrides: sessionHistory resolves ~/.dsh-tui at
+// Import AFTER the env overrides: sessionHistory resolves ~/.dsh-cli at
 // module load, sessionLog resolves roots at call time.
 const { createChannel } = await import('../lib/types/dsh-adapter/channel.js')
 
@@ -108,7 +108,7 @@ assert.equal(rowAfter.title.source, 'renamed', 'a title with no provider source 
 assert.equal(after[0].id, target, 'rename touched MRU: target pulled to the top row')
 
 // The MRU touch must be durable (last-used.json under the sandboxed HOME).
-const lastUsed = JSON.parse(readFileSync(join(home, '.dsh-tui', 'last-used.json'), 'utf8'))
+const lastUsed = JSON.parse(readFileSync(join(home, '.dsh-cli', 'last-used.json'), 'utf8'))
 assert.equal(typeof lastUsed[target], 'number', 'last-used entry recorded for the renamed session')
 
 // And the log itself carries the appended title event (restart durability).

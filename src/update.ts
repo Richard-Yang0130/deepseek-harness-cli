@@ -14,7 +14,7 @@ const PACKAGE_NAME = '@deepseek-harness-tui/dsh-tui'
 const DEFAULT_REGISTRY = 'https://registry.npmjs.org'
 const UPDATE_CHECK_TIMEOUT_MS = 4000
 /** env marker set on the /update restart; the new process verifies it at boot. */
-const UPDATED_FROM_ENV = 'DSH_TUI_UPDATED_FROM'
+const UPDATED_FROM_ENV = 'DSH_CLI_UPDATED_FROM'
 
 export interface TuiUpdateInfo {
   current: string
@@ -301,7 +301,7 @@ export async function updateTuiAndRestart(
       ...process.env,
       // Dual-write the resume contract (issue #120): the cordis layer of a
       // still-old TUI build reads only DSH_CC_RESUME_SESSION.
-      DSH_TUI_RESUME_SESSION: sessionId,
+      DSH_CLI_RESUME_SESSION: sessionId,
       DSH_CC_RESUME_SESSION: sessionId,
       [UPDATED_FROM_ENV]: installedTuiVersion() ?? '',
     },

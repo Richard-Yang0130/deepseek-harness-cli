@@ -38,14 +38,14 @@ try {
 
   const nextRoot = join(temporary, 'next')
   await cp(packagedRoot, nextRoot, { recursive: true })
-  const markerPath = join(nextRoot, 'liangshen', '.dsh-tui-managed.json')
+  const markerPath = join(nextRoot, 'liangshen', '.dsh-cli-managed.json')
   const marker = JSON.parse(await readFile(markerPath, 'utf8'))
   marker.revision = `${marker.revision}-test-update`
   await writeFile(markerPath, `${JSON.stringify(marker, null, 2)}\n`)
   assert.deepEqual(ensurePackagedPresets({ dshHome, sourceRoot: nextRoot }), [
     { id: 'liangshen', status: 'updated' },
   ])
-  assert.equal(JSON.parse(await readFile(join(dshHome, '.agent-presets', 'liangshen', '.dsh-tui-managed.json'), 'utf8')).revision, marker.revision)
+  assert.equal(JSON.parse(await readFile(join(dshHome, '.agent-presets', 'liangshen', '.dsh-cli-managed.json'), 'utf8')).revision, marker.revision)
 } finally {
   await rm(temporary, { recursive: true, force: true })
 }

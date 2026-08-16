@@ -3,7 +3,7 @@
  * summary must stay on one physical row instead of interleaving with its hint.
  * Run: node --import tsx/esm scripts/verify-loaded-context-width.tsx
  */
-process.env.DSH_TUI_LANG = 'en'
+process.env.DSH_CLI_LANG = 'en'
 process.env.FORCE_COLOR = '3'
 
 const [{ Writable }, React, { Terminal: XTerm }, { render, ThemeProvider }, { LoadedContextPanel }] =

@@ -1,26 +1,24 @@
 /**
  * Launcher contract for `dsh-tui --resume`: the TUI writes the chosen session
- * id to `~/.dsh-tui/resume.txt`, and the launcher feeds it back as
- * `DSH_TUI_RESUME_SESSION`. Session *records* live in DSH's own persistence
+ * id to `~/.dsh-cli/resume.txt`, and the launcher feeds it back as
+ * `DSH_CLI_RESUME_SESSION`. Session *records* live in DSH's own persistence
  * backend (dsh-session-persistence-jsonl) — `/resume` lists those via
  * `sessionPersistence.list()`, this file only carries the id across
  * processes. It also keeps a small `last-used.json` of session-id → epoch-ms
  * touches so `/resume` can sort most-recently-used first (DSH session
  * headers carry only `createdAt`).
  *
- * Rename transition (issue #120): the global bin and the profile's TUI
- * package may run different versions, so `resume.txt` is DUAL-WRITTEN to the
- * legacy `~/.dsh-cc/resume.txt` as well (old launchers read only that path)
- * and reads fall back to it. TODO: drop the legacy path once pre-rename
- * launchers have aged out.
+ * Legacy resume markers are read only when the new marker does not exist.
+ * New writes stay under `~/.dsh-cli` and never mutate an older product's
+ * data directory.
  */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { DATA_DIR, LEGACY_DATA_DIR } from './utils/paths.js'
+import { DATA_DIR, LEGACY_DATA_DIRS } from './utils/paths.js'
 
 const DIR = DATA_DIR
 const RESUME_FILE = join(DIR, 'resume.txt')
-const LEGACY_RESUME_FILE = join(LEGACY_DATA_DIR, 'resume.txt')
+const LEGACY_RESUME_FILES = LEGACY_DATA_DIRS.map(dir => join(dir, 'resume.txt'))
 const LAST_USED_FILE = join(DIR, 'last-used.json')
 
 function ensureDir(): void {
@@ -29,28 +27,20 @@ function ensureDir(): void {
 
 /**
  * Store the session to resume and report the launcher invocation.
- * Dual-writes the legacy path for pre-rename launchers (see header).
- * @param sessionId - Session id for `dsh-tui --resume` on the next launch.
+ * @param sessionId - Session id for `dsh-cli --resume` on the next launch.
  */
 export function writeResumeTarget(sessionId: string): void {
   ensureDir()
   writeFileSync(RESUME_FILE, sessionId)
-  try {
-    mkdirSync(LEGACY_DATA_DIR, { recursive: true })
-    writeFileSync(LEGACY_RESUME_FILE, sessionId)
-  } catch {
-    // Best effort — the legacy mirror only serves old launchers.
-  }
 }
 
 /** Forget the resume marker (`/new` starts a fresh conversation). */
 export function clearResumeTarget(): void {
-  for (const file of [RESUME_FILE, LEGACY_RESUME_FILE]) {
-    try {
-      writeFileSync(file, '')
-    } catch {
-      // Best effort — the marker is a launcher nicety.
-    }
+  ensureDir()
+  try {
+    writeFileSync(RESUME_FILE, '')
+  } catch {
+    // Best effort — the marker is a launcher nicety.
   }
 }
 
@@ -60,7 +50,12 @@ export function clearResumeTarget(): void {
  * @returns The stored session id, or undefined when none is set.
  */
 export function readResumeTarget(): string | undefined {
-  for (const file of [RESUME_FILE, LEGACY_RESUME_FILE]) {
+  try {
+    return readFileSync(RESUME_FILE, 'utf8').trim() || undefined
+  } catch {
+    // No current marker: fall back to read-only legacy locations.
+  }
+  for (const file of LEGACY_RESUME_FILES) {
     try {
       const value = readFileSync(file, 'utf8').trim()
       if (value) return value

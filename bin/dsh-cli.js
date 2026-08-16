@@ -16,14 +16,14 @@
  *      启动必然以模块解析错误崩溃；
  *   4. 透传全部参数启动 `dsh --profile dsh-cli`。
  *
- * `--resume` 由本启动器拦截：读取 TUI 保留的 ~/.dsh-tui/resume.txt
+ * `--resume` 由本启动器拦截：读取 TUI 保留的 ~/.dsh-cli/resume.txt
  * （旧路径 ~/.dsh-cc/resume.txt 兜底，直到旧版 TUI 退场——见
  * src/sessionHistory.ts 的启动器契约，issue #120），以
- * DSH_TUI_RESUME_SESSION（并兼容写 DSH_CC_RESUME_SESSION）环境变量喂回，
+ * DSH_CLI_RESUME_SESSION（并兼容写 DSH_CC_RESUME_SESSION）环境变量喂回，
  * 该 flag 本身不再传给 dsh。
  *
  * 面向用户的消息走下方 MSG 双语表：与 TUI 的语言契约一致——
- * `DSH_TUI_LANG` 显式指定时从其值，否则默认中文（同 src/i18n.ts 的缺省）。
+ * `DSH_CLI_LANG` 显式指定时从其值，否则默认中文（同 src/i18n.ts 的缺省）。
  */
 import { spawn, spawnSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
@@ -31,7 +31,7 @@ import { homedir } from 'node:os'
 import { isAbsolute, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { shellQuote } from '../lib/types/utils/shellQuote.js'
-import { detectLegacyEnv, RENAMED_ENV } from '../lib/types/utils/paths.js'
+import { applyLegacyEnv, detectLegacyEnv, RENAMED_ENV } from '../lib/types/utils/paths.js'
 
 const here = fileURLToPath(new URL('.', import.meta.url))
 const ownVersion = JSON.parse(readFileSync(join(here, '..', 'package.json'), 'utf8')).version
@@ -39,10 +39,12 @@ const PACKAGE = 'deepseek-harness-cli'
 const PROFILE = 'dsh-cli'
 const BRAND = 'dsh-cli'
 
+applyLegacyEnv()
+
 // --- 双语消息表（启动器跑在 TUI boot 之前，无法复用 src/i18n.ts）-------------
-// 与 TUI 一致：DSH_TUI_LANG 显式指定才生效，否则默认中文；旧名 CC_TUI_LANG
+// 与 TUI 一致：DSH_CLI_LANG 显式指定才生效，否则默认中文；旧名 CC_TUI_LANG
 // 仅用于让警告本身以用户习惯的语言显示（配置不再从旧名生效）。
-const lang = (process.env.DSH_TUI_LANG ?? process.env.CC_TUI_LANG) === 'en' ? 'en' : 'zh'
+const lang = (process.env.DSH_CLI_LANG ?? process.env.CC_TUI_LANG) === 'en' ? 'en' : 'zh'
 const MSG = {
   noDsh: {
     en: `[${BRAND}] dsh CLI not found. Install the official client first:\n  npm install -g @deepseek-ai/dsh`,
@@ -178,11 +180,11 @@ if (installedVersion === undefined) {
 //   --resume / -c / --continue      恢复最近一次会话（读 resume.txt）
 // 其余位置参数原样透传给 dsh CLI，由插件经 ctx.cmdlineArgs 读取（初始 prompt）。
 const setResumeEnv = sessionId => {
-  process.env.DSH_TUI_RESUME_SESSION = sessionId
+  process.env.DSH_CLI_RESUME_SESSION = sessionId
   process.env.DSH_CC_RESUME_SESSION = sessionId
 }
 const readLastResumeTarget = () => {
-  for (const dir of ['.dsh-tui', '.dsh-cc']) {
+  for (const dir of ['.dsh-cli', '.dsh-tui', '.dsh-cc']) {
     try {
       const sessionId = readFileSync(join(homedir(), dir, 'resume.txt'), 'utf8').trim()
       if (sessionId) return sessionId
@@ -207,13 +209,13 @@ for (let i = 0; i < argv.length; i++) {
     if (!sessionId) sessionId = readLastResumeTarget()
     if (sessionId) setResumeEnv(sessionId)
   } else if (
-    process.env.DSH_TUI_WORKSPACE_TARGET === undefined
+    process.env.DSH_CLI_WORKSPACE_TARGET === undefined
     && !a.startsWith('-')
     && (isAbsolute(a) || /^[a-z][a-z0-9+.-]*:\/\//iu.test(a) || existsSync(resolve(a)))
   ) {
     // A workspace target is launcher syntax, not an argument for the profile
     // app. The registry resolves local paths/file URLs and provider URIs.
-    process.env.DSH_TUI_WORKSPACE_TARGET = a
+    process.env.DSH_CLI_WORKSPACE_TARGET = a
   } else {
     args.push(a)
   }

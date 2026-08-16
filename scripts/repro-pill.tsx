@@ -8,7 +8,7 @@
 process.env.FORCE_COLOR = '3'
 // This script asserts English UI copy; pin the language before any
 // module import resolves the startup lang (env > persisted > locale).
-process.env.DSH_TUI_LANG = 'en'
+process.env.DSH_CLI_LANG = 'en'
 
 const [{ PassThrough, Writable }, React, { Terminal: XTerm }, { render, AlternateScreen }, { Chat }, { QuestionStore }] = await Promise.all([
   import('node:stream'),

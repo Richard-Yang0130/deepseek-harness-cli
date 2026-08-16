@@ -40,7 +40,7 @@ import { zstdCompressSync } from 'node:zlib'
 
 const root = mkdtempSync(join(tmpdir(), 'dsh-tui-index-'))
 const home = mkdtempSync(join(tmpdir(), 'dsh-tui-index-home-'))
-process.env.DSH_TUI_SESSION_ROOT = root
+process.env.DSH_CLI_SESSION_ROOT = root
 process.env.HOME = home
 process.env.USERPROFILE = home
 
@@ -71,7 +71,7 @@ function ok(name, condition, detail = '') {
   checks += 1
 }
 
-const INDEX_FILE = join(home, '.dsh-tui', 'session-index.json')
+const INDEX_FILE = join(home, '.dsh-cli', 'session-index.json')
 
 /** One zstd frame per event batch — the container the backend writes. */
 function encode(batches) {

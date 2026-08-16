@@ -13,7 +13,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const OWNER = '@deepseek-harness-tui/dsh-tui'
-const MARKER = '.dsh-tui-managed.json'
+const MARKER = '.dsh-cli-managed.json'
 
 interface ManagedMarker {
   owner: string

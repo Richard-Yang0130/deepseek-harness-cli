@@ -22,8 +22,8 @@
  */
 process.env.FORCE_COLOR = '3'
 process.env.TERM_PROGRAM = 'WezTerm'
-process.env.DSH_TUI_THEME = 'dark'
-process.env.DSH_TUI_LANG = 'zh'
+process.env.DSH_CLI_THEME = 'dark'
+process.env.DSH_CLI_LANG = 'zh'
 
 // 隔离 HOME：modelPrefs/history 在模块加载时解析 homedir()，必须先切到
 // 临时目录再 import src；picker 交互不落任何真实偏好文件。
@@ -34,9 +34,9 @@ process.env.HOME = mkdtempSync(joinPath(tmpdir(), 'dshtui-repro-home-'))
 
 // ctrl+r 数据源：30 条历史命令（每项渲染 2 行：命令 + age 描述）。
 const NOW = Date.now()
-mkdirSync(joinPath(process.env.HOME, '.dsh-tui'), { recursive: true })
+mkdirSync(joinPath(process.env.HOME, '.dsh-cli'), { recursive: true })
 writeFileSync(
-  joinPath(process.env.HOME, '.dsh-tui', 'history.jsonl'),
+  joinPath(process.env.HOME, '.dsh-cli', 'history.jsonl'),
   Array.from({ length: 30 }, (_, i) =>
     JSON.stringify({ text: `histcmd-${String(i).padStart(2, '0')}`, ts: NOW }),
   ).join('\n') + '\n',
@@ -45,9 +45,9 @@ writeFileSync(
 // /theme 数据源：displayName 带内部换行的自定义主题（customTheme 允许保
 // 留内部换行；ThemePicker 的 label 是包着 displayName 的 Fragment——三轮
 // 审查实证的生产路径）。
-mkdirSync(joinPath(process.env.HOME, '.dsh-tui', 'themes'), { recursive: true })
+mkdirSync(joinPath(process.env.HOME, '.dsh-cli', 'themes'), { recursive: true })
 writeFileSync(
-  joinPath(process.env.HOME, '.dsh-tui', 'themes', 'nltheme.json'),
+  joinPath(process.env.HOME, '.dsh-cli', 'themes', 'nltheme.json'),
   JSON.stringify({ name: 'nltheme', displayName: 'Foo\nBar NL', base: 'dark' }) + '\n',
   'utf8',
 )

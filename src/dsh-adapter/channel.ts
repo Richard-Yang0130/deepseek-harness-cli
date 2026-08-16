@@ -44,7 +44,7 @@ import { composePreset, resolvePersistedPreset, rosterOf, runningPresetOf, servi
 import { isPresetName } from '../components/activityFrames.js'
 import { existsSync, statSync, writeFileSync } from 'node:fs'
 import { logForDebugging } from '../utils/debug.js'
-import { homeDir, LEGACY_DATA_DIR } from '../utils/paths.js'
+import { homeDir, LEGACY_DATA_DIRS } from '../utils/paths.js'
 import { extractMentions } from '../utils/mentions.js'
 import { t } from '../i18n.js'
 import { modeDisplayName, resolveSessionModes, type SessionModeSpec } from '../sessionModes.js'
@@ -440,7 +440,7 @@ export interface Channel {
   listEfforts(): Promise<{ efforts: readonly EffortOption[]; defaultEffort: string | undefined }>
   /** Set one effort level by id (validated against the adapter list);
    *  false + a notify when the id is not offered. Persists like the old
-   *  Shift+Tab cycle (~/.dsh-tui/effort.json). */
+   *  Shift+Tab cycle (~/.dsh-cli/effort.json). */
   setEffort(id: string): Promise<boolean>
   /** The session mode currently in force (matched from the session log, or
    *  the last one Shift+Tab applied). */
@@ -472,7 +472,7 @@ export interface Channel {
   /** Push a transient notification above the prompt input. */
   notify(text: string, options?: { color?: NotificationItem['color']; timeoutMs?: number }): void
   /** Switch the working-activity indicator preset (`/activity`): validates
-   *  the name, persists it to `~/.dsh-tui/working-activity.json`, and
+   *  the name, persists it to `~/.dsh-cli/working-activity.json`, and
    *  re-renders the indicator immediately; false when the name is unknown
    *  or the preference cannot be written. */
   setActivityFrames(name: string): boolean
@@ -1754,7 +1754,7 @@ export function createChannel(
     async resumeTo(sessionId: string): Promise<boolean> {
       // Switch the live agent to a persisted session: /resume picker Enter
       // loads the history immediately (the `--resume` launcher path keeps
-      // resolving through DSH_TUI_RESUME_SESSION at boot).
+      // resolving through DSH_CLI_RESUME_SESSION at boot).
       if (state.working) {
         state.notify(t('resume-while-working'), { color: 'warning' })
         return false
@@ -2750,20 +2750,20 @@ export function createChannel(
       lines.push(`${t('doctor-session', { id: state.agentId })}${state.sessionTitle ? ' · ' + state.sessionTitle : ''}`)
       const userHome = homeDir()
       const configCandidates = [
-        join(userHome, '.dsh-tui/cordis.yml'),
-        join(userHome, '.dsh/profiles/dsh-tui/cordis.patch.yml'),
+        join(userHome, '.dsh-cli/cordis.yml'),
+        join(userHome, '.dsh/profiles/dsh-cli/cordis.patch.yml'),
       ]
       for (const candidate of configCandidates) {
         lines.push(`${t('doctor-config', { candidate, state: existsSync(candidate) ? '✓' : t('doctor-config-missing') })}`)
       }
       // Session store candidates mirror the compat layer (sessionsRoots):
       // the active root depends on the composition (bare cordis.yml →
-      // legacy ~/.dsh-tui, profile → $DSH_HOME/sessions), so list every
+      // legacy ~/.dsh-cli, profile → $DSH_HOME/sessions), so list every
       // candidate with its own state instead of hardcoding one.
       for (const dir of sessionsRoots()) {
         lines.push(`${t('doctor-storage', { dir, state: existsSync(dir) ? '✓' : t('doctor-storage-uninit') })}`)
       }
-      if (existsSync(LEGACY_DATA_DIR)) {
+      if (LEGACY_DATA_DIRS.some(dir => existsSync(dir))) {
         lines.push(t('doctor-legacy-dir'))
       }
       return lines

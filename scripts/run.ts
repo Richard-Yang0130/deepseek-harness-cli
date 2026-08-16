@@ -40,8 +40,8 @@ import type { Context } from '@deepseek-ai/cordis'
 
 const here = fileURLToPath(new URL('.', import.meta.url))
 // Default assumes an in-monorepo checkout (harness/packages/ui/dsh-tui);
-// standalone clones set DSH_TUI_DEV_WORKSPACE to the harness repo root.
-const workspace = process.env.DSH_TUI_DEV_WORKSPACE ?? resolve(here, '../../../..')
+// standalone clones set DSH_CLI_DEV_WORKSPACE to the harness repo root.
+const workspace = process.env.DSH_CLI_DEV_WORKSPACE ?? resolve(here, '../../../..')
 const dshHome = process.env.DSH_HOME
 const profileDir = join(dshHome, 'profiles', 'dsh-tui')
 const rootConfig = join(profileDir, 'cordis.yml')

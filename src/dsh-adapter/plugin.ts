@@ -24,7 +24,7 @@ import { clearResumeTarget, writeResumeTarget } from '../sessionHistory.js'
 import { resolveSessionCwd } from '../utils/workspaceRoot.js'
 import { checkForTuiUpdate, installedTuiVersion, isVersionNewer, resolveDshProfileName, resolveTuiUpdateTarget, updateTuiAndRestart } from '../update.js'
 import { isLang, resolveStartupLang, setLang, t } from '../i18n.js'
-import { detectLegacyEnv, migrateLegacyDataDir, RENAMED_ENV } from '../utils/paths.js'
+import { applyLegacyEnv, detectLegacyEnv, migrateLegacyDataDir, RENAMED_ENV } from '../utils/paths.js'
 import { Chat } from '../screens/Chat.js'
 import { attachSessionToWorkspace } from './workspace.js'
 import { createLocalWorkspaceRuntime } from './workspaces.js'
@@ -44,6 +44,7 @@ import { CLEAR_ITERM2_PROGRESS, CLEAR_TAB_STATUS, supportsTabStatus, wrapForMult
  * LLM adapter, and the tool plugins.
  */
 export async function apply(ctx: Context, config: Config): Promise<void> {
+  applyLegacyEnv()
   if (!process.stdout.isTTY) {
     throw new Error('dsh-tui requires an interactive terminal (stdout must be a TTY).')
   }
@@ -66,24 +67,24 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
     ctx.logger.warn(`dsh-tui: unable to install packaged presets (${error instanceof Error ? error.message : String(error)})`)
   }
 
-  // Data-directory rename (~/.dsh-cc → ~/.dsh-tui, issue #120): copy the
+  // Data-directory rename (~/.dsh-cc → ~/.dsh-cli, issue #120): copy the
   // legacy directory before ANY preference read below (resolveStartupLang
   // already touches lang.json). Copy, not move — old launchers keep working
   // and the user deletes the legacy directory themselves.
   const migrated = migrateLegacyDataDir()
 
-  // UI language resolution: DSH_TUI_LANG env var wins, then cordis.yml
+  // UI language resolution: DSH_CLI_LANG env var wins, then cordis.yml
   // `lang`, then the persisted `/lang` choice, then `zh`. Must settle
   // before the first render so every module resolves strings in the same
   // language.
-  const envLang = process.env.DSH_TUI_LANG
+  const envLang = process.env.DSH_CLI_LANG
   setLang(isLang(envLang) ? envLang : isLang(config.lang) ? config.lang : resolveStartupLang())
 
   // Rename notices must land before the first render — stderr writes break
   // the fullscreen UI once it is up. The bin launcher prints the same
   // warnings; this covers direct `dsh --profile dsh-tui` boots.
   if (migrated) {
-    ctx.logger.warn('dsh-tui: data directory copied from ~/.dsh-cc to ~/.dsh-tui (legacy kept)')
+    ctx.logger.warn('dsh-tui: data directory copied from ~/.dsh-cc to ~/.dsh-cli (legacy kept)')
     if (process.stderr.isTTY) {
       process.stderr.write(`\n[dsh-tui] ${t('legacy-dir-migrated')}\n`)
     }
@@ -101,11 +102,11 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
   // lag, cached manifest, wrong profile). Say so instead of silently
   // pretending the update landed.
   {
-    const updatedFrom = process.env.DSH_TUI_UPDATED_FROM
+    const updatedFrom = process.env.DSH_CLI_UPDATED_FROM
     if (updatedFrom !== undefined) {
       // Assigning undefined would stringify to "undefined" and leak the
       // marker into every child process; remove it for real.
-      delete process.env.DSH_TUI_UPDATED_FROM
+      delete process.env.DSH_CLI_UPDATED_FROM
       const now = installedTuiVersion()
       if (now === undefined || !isVersionNewer(now, updatedFrom)) {
         ctx.logger.warn(
@@ -213,7 +214,7 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
   // itself outside any worktree), so `@` completion and mention expansion
   // see the repository, not an arbitrary launch subdirectory. Resolved ONCE
   // here — the agent meta and the channel must agree.
-  const requestedWorkspace = config.workspace ?? process.env.DSH_TUI_WORKSPACE_TARGET
+  const requestedWorkspace = config.workspace ?? process.env.DSH_CLI_WORKSPACE_TARGET
   // Degraded boot (issue #183): a stale bundle patch without the
   // dsh-tui-workspaces row leaves the service unmounted; resolve startup
   // targets through the local-only runtime (provider URIs then fail loud
@@ -802,16 +803,16 @@ function disposeRootAndExit(ctx: Context, code: number): void {
 /**
  * The real way back into a session after the TUI process is gone. The
  * package ships no `dsh-tui` bin — resuming means feeding the session id
- * through `DSH_TUI_RESUME_SESSION` (what cordis.patch.yml's `sessionId`
+ * through `DSH_CLI_RESUME_SESSION` (what cordis.patch.yml's `sessionId`
  * reads; the pre-rename DSH_CC_ spelling still works, issue #120) and
  * booting the same profile; on Windows the repo's dsh-tui.cmd wrapper
- * does this via --resume + ~/.dsh-tui/resume.txt.
+ * does this via --resume + ~/.dsh-cli/resume.txt.
  */
 function resumeCommand(profile: string | undefined, sessionId: string): string {
   const boot = profile === undefined ? 'dsh --config cordis.yml' : `dsh --profile ${profile}`
   return process.platform === 'win32'
     ? `dsh-tui --resume ${sessionId}`
-    : `DSH_TUI_RESUME_SESSION=${sessionId} ${boot}`
+    : `DSH_CLI_RESUME_SESSION=${sessionId} ${boot}`
 }
 
 /**

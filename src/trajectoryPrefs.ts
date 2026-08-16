@@ -1,6 +1,6 @@
 /**
  * Persisted "the user has seen the trajectory" flag, at
- * `~/.dsh-tui/trajectory.json`.
+ * `~/.dsh-cli/trajectory.json`.
  *
  * It exists so the key hint beside the status-line wake can retire itself.
  * A permanent `ctrl+t` printed on every frame forever is the classic symptom

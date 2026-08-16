@@ -15,7 +15,7 @@
  * Driver mode additionally unit-tests the reporter: debounce dedup with a
  * repeat count, cooldown silence, ANSI stripping, truncation, empty lines.
  */
-process.env.DSH_TUI_LANG = 'zh'
+process.env.DSH_CLI_LANG = 'zh'
 
 import { spawn } from 'node:child_process'
 import { fileURLToPath } from 'node:url'

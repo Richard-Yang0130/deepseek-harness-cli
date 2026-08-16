@@ -25,7 +25,7 @@ process.env.FORCE_COLOR = '3'
 // Asserts Chinese UI copy, so it pins the language rather than inheriting the
 // ambient one — `activeLang` resolves at import from env → persisted pref → OS
 // locale, none of which a runner is obliged to agree with.
-process.env.DSH_TUI_LANG = 'zh'
+process.env.DSH_CLI_LANG = 'zh'
 
 const [{ PassThrough, Writable }, React, { Terminal: XTerm }, { render }, { Chat }, { QuestionStore }] =
   await Promise.all([

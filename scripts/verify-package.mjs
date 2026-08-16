@@ -44,7 +44,7 @@ if (missing.length > 0) {
 for (const presetFile of [
   'presets/liangshen/agent.cordis.yml',
   'presets/liangshen/preset.yml',
-  'presets/liangshen/.dsh-tui-managed.json',
+  'presets/liangshen/.dsh-cli-managed.json',
   'presets/liangshen/tool-bootstrap.mjs',
 ]) {
   if (!packed.has(presetFile)) throw new Error(`packaged preset file missing from tarball: ${presetFile}`)

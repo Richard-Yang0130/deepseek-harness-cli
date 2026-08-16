@@ -1,6 +1,6 @@
 /**
  * Persisted agent-preset preference (`/preset` picker choice), kept at
- * `~/.dsh-tui/agent-preset.json` (`preset` key) so the choice survives
+ * `~/.dsh-cli/agent-preset.json` (`preset` key) so the choice survives
  * restarts — same pattern as working-activity.json. The file is best-effort:
  * a missing/corrupt file or an id the roster no longer supplies simply falls
  * back to the roster default (`standard`). An explicit `preset` key in
