@@ -76,7 +76,8 @@
     "verify:profile-migration": "node scripts/verify-profile-migration.mjs",
     "verify:launcher-compat": "node scripts/verify-launcher-compat.mjs",
     "verify:legacy-commands": "node scripts/verify-legacy-commands.mjs",
-    "verify:dynamic-commands": "node scripts/verify-dynamic-command-pass-through.mjs"
+    "verify:dynamic-commands": "node scripts/verify-dynamic-command-pass-through.mjs",
+    "verify:plain-reporter": "node scripts/verify-plain-reporter.mjs"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.1",

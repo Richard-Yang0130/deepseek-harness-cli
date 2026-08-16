@@ -28,6 +28,7 @@ import { applyLegacyEnv, detectLegacyEnv, migrateLegacyDataDir, RENAMED_ENV } fr
 import { Chat } from '../screens/Chat.js'
 import { attachSessionToWorkspace } from './workspace.js'
 import { createLocalWorkspaceRuntime } from './workspaces.js'
+import { attachPlainReporter } from './plainReporter.js'
 import { render, ThemeProvider, AlternateScreen } from '../ui.js'
 import instances from '../ink/instances.js'
 import { cursorMove, DISABLE_KITTY_KEYBOARD, DISABLE_MODIFY_OTHER_KEYS, DISABLE_WIN32_INPUT_MODE } from '../ink/termio/csi.js'
@@ -45,9 +46,7 @@ import { CLEAR_ITERM2_PROGRESS, CLEAR_TAB_STATUS, supportsTabStatus, wrapForMult
  */
 export async function apply(ctx: Context, config: Config): Promise<void> {
   applyLegacyEnv()
-  if (!process.stdout.isTTY) {
-    throw new Error('dsh-cli requires an interactive terminal (stdout must be a TTY).')
-  }
+  const interactive = Boolean(process.stdin.isTTY && process.stdout.isTTY)
 
   // The official profile launcher owns the system preset root and replaces
   // any bundle-supplied roots at boot. Install dsh-cli's bundled presets via
@@ -299,6 +298,14 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
     modes: config.modes,
     handle,
   })
+  const cmdlineArgs = (ctx as { cmdlineArgs?: { args?: readonly string[] } }).cmdlineArgs?.args
+  const initialPrompt = cmdlineArgs?.filter(arg => !arg.startsWith('-')).join(' ').trim()
+  if (!interactive) {
+    const detach = attachPlainReporter(channel, { write: text => process.stdout.write(text) })
+    ctx.effect(() => detach)
+    if (initialPrompt) channel.submit(initialPrompt)
+    return
+  }
   // DSH approval seam: the permission layer asks ApprovalService.request(),
   // which dispatches an `approval/request` waterfall. With no answerer the
   // chain falls through to the fail-closed 'unavailable', so register this
@@ -318,8 +325,6 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
   // which mounts them as ctx.cmdlineArgs. Submit once the channel exists —
   // delivery goes through the normal pending/inbox chain, so no special
   // timing is needed; flag-shaped leftovers are not prompt text.
-  const cmdlineArgs = (ctx as { cmdlineArgs?: { args?: readonly string[] } }).cmdlineArgs?.args
-  const initialPrompt = cmdlineArgs?.filter(arg => !arg.startsWith('-')).join(' ').trim()
   if (initialPrompt) channel.submit(initialPrompt)
   // Attach the stderr reporter to the live channel and flush anything a
   // startup-spawned server produced while the channel didn't exist yet.
