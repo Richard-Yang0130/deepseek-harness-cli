@@ -25,7 +25,7 @@
  * losing concurrent write, or a read-only home directory costs a re-derivation
  * and nothing else, so nothing here throws.
  *
- * @module @deepseek-harness-tui/dsh-tui/sessions/store
+ * @module deepseek-harness-cli/sessions/store
  */
 import { mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'

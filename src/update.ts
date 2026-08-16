@@ -10,7 +10,7 @@ import { shellQuote } from './utils/shellQuote.js'
 // the compiled copy at lib/types/utils/shellQuote.js.
 export { shellQuote }
 
-const PACKAGE_NAME = '@deepseek-harness-tui/dsh-tui'
+const PACKAGE_NAME = 'deepseek-harness-cli'
 const DEFAULT_REGISTRY = 'https://registry.npmjs.org'
 const UPDATE_CHECK_TIMEOUT_MS = 4000
 /** env marker set on the /update restart; the new process verifies it at boot. */
@@ -209,7 +209,7 @@ function runProcess(
       resolve(code)
     }
     child.once('error', error => {
-      process.stderr.write(`dsh-tui: failed to run ${command}: ${error.message}\n`)
+      process.stderr.write(`dsh-cli: failed to run ${command}: ${error.message}\n`)
       finish(127)
     })
     child.once('close', code => finish(code ?? 1))
@@ -238,7 +238,7 @@ export function isTransientUpdateFailure(stderr: string): boolean {
 }
 
 /**
- * Update the installed dsh-tui package and restart the same launcher while
+ * Update the installed dsh-cli package and restart the same launcher while
  * preserving the active session. The TUI must already be unmounted before
  * this is called so pnpm output cannot corrupt the rendered terminal frame.
  *
@@ -269,7 +269,7 @@ export async function updateTuiAndRestart(
   // command once — it succeeds on a clean second run, and only the
   // `_tmp_<pid>` race signature qualifies, never a real resolution error.
   if (updateCode !== 0 && isTransientUpdateFailure(updateStderr)) {
-    process.stderr.write('dsh-tui: transient pnpm failure (Windows tmp-rename race) — retrying once…\n')
+    process.stderr.write('dsh-cli: transient pnpm failure (Windows tmp-rename race) — retrying once…\n')
     updateStderr = ''
     updateCode = await runProcess(dsh, updateArgs, { shell: true, onStderr: capture })
   }
@@ -288,7 +288,7 @@ export async function updateTuiAndRestart(
     }
     if (installed !== targetVersion) {
       process.stderr.write(
-        `dsh-tui: update completed but the profile still runs ${installed ?? 'an unreadable version'} ` +
+        `dsh-cli: update completed but the profile still runs ${installed ?? 'an unreadable version'} ` +
           `(expected ${targetVersion}) — the profile is half-updated. Repair manually with:\n` +
           `  dsh plugin --profile ${profile} add ${PACKAGE_NAME}@${targetVersion}\n`,
       )

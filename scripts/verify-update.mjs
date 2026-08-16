@@ -62,7 +62,7 @@ try {
   // ../../package.json lands above the root (missing) → ../package.json hits.
   const sourceRoot = join(scratch, 'source')
   copyUpdateModule(join(sourceRoot, 'src'))
-  writeFileSync(join(sourceRoot, 'package.json'), JSON.stringify({ name: '@deepseek-harness-tui/dsh-tui', version: '1.2.3', type: 'module' }))
+  writeFileSync(join(sourceRoot, 'package.json'), JSON.stringify({ name: 'deepseek-harness-cli', version: '1.2.3', type: 'module' }))
   const sourceMod = await import(`${pathToFileURL(join(sourceRoot, 'src', 'update.js'))}?probe=1`)
   check(
     'installedTuiVersion reads the source-checkout layout',
@@ -74,7 +74,7 @@ try {
   // manifest must win over a nearer foreign one.
   const pkgRoot = join(scratch, 'pkg')
   copyUpdateModule(join(pkgRoot, 'lib', 'types'))
-  writeFileSync(join(pkgRoot, 'package.json'), JSON.stringify({ name: '@deepseek-harness-tui/dsh-tui', version: '0.9.9', type: 'module' }))
+  writeFileSync(join(pkgRoot, 'package.json'), JSON.stringify({ name: 'deepseek-harness-cli', version: '0.9.9', type: 'module' }))
   writeFileSync(join(pkgRoot, 'lib', 'package.json'), JSON.stringify({ name: 'other-pkg', version: '9.9.9' }))
   const pkgMod = await import(`${pathToFileURL(join(pkgRoot, 'lib', 'types', 'update.js'))}?probe=2`)
   check(
@@ -178,13 +178,13 @@ check(
 )
 check(
   'profile: inner app args do not shadow the launcher flag',
-  resolveDshProfileName(['node', 'dsh', '--profile', 'dsh-tui', '--resume', 'sid', '--model', 'x']) === 'dsh-tui',
+  resolveDshProfileName(['node', 'dsh', '--profile', 'dsh-cli', '--resume', 'sid', '--model', 'x']) === 'dsh-cli',
 )
 
 // ---- shellQuote: cmd.exe safety for the .cmd path (P1 companion)
 check(
   'shellQuote: plain tokens pass through',
-  shellQuote(['plugin', '--profile', 'dsh-tui']).join(' ') === 'plugin --profile dsh-tui',
+  shellQuote(['plugin', '--profile', 'dsh-cli']).join(' ') === 'plugin --profile dsh-cli',
 )
 check(
   'shellQuote: spaces get quoted',
@@ -196,11 +196,11 @@ check(
 )
 
 // ---- pnpm args reuse the preflight result instead of resolving latest twice
-const exactUpdateArgs = tuiUpdatePluginArgs('dsh-tui', '0.7.2')
+const exactUpdateArgs = tuiUpdatePluginArgs('dsh-cli', '0.7.2')
 check(
   'update command pins the preflight target version',
   JSON.stringify(exactUpdateArgs) === JSON.stringify([
-    'plugin', '--profile', 'dsh-tui', 'update', '@deepseek-harness-tui/dsh-tui@0.7.2',
+    'plugin', '--profile', 'dsh-cli', 'update', 'deepseek-harness-cli@0.7.2',
   ]),
   `got ${JSON.stringify(exactUpdateArgs)}`,
 )
@@ -208,7 +208,7 @@ const fallbackUpdateArgs = tuiUpdatePluginArgs('custom-profile')
 check(
   'update command falls back to --latest when preflight failed',
   JSON.stringify(fallbackUpdateArgs) === JSON.stringify([
-    'plugin', '--profile', 'custom-profile', 'update', '--latest', '@deepseek-harness-tui/dsh-tui',
+    'plugin', '--profile', 'custom-profile', 'update', '--latest', 'deepseek-harness-cli',
   ]),
   `got ${JSON.stringify(fallbackUpdateArgs)}`,
 )
@@ -233,12 +233,12 @@ check(
 check(
   'transient: pnpm tmp-rename ENOENT qualifies',
   isTransientUpdateFailure(
-    "[ERR_PNPM_ENOENT] [importPackage D:\\p\\node_modules\\dsh-tui] ENOENT: no such file or directory, scandir 'D:\\p\\node_modules\\dsh-tui_tmp_40044_1\\node_modules'",
+    "[ERR_PNPM_ENOENT] [importPackage D:\\p\\node_modules\\dsh-cli] ENOENT: no such file or directory, scandir 'D:\\p\\node_modules\\dsh-cli_tmp_40044_1\\node_modules'",
   ),
 )
 check(
   'transient: EPERM rename on a tmp staging dir qualifies',
-  isTransientUpdateFailure('EPERM: operation not permitted, rename D:\\p\\dsh-tui_tmp_123_4'),
+  isTransientUpdateFailure('EPERM: operation not permitted, rename D:\\p\\dsh-cli_tmp_123_4'),
 )
 check(
   'transient: plain resolution ENOENT without tmp token does not qualify',

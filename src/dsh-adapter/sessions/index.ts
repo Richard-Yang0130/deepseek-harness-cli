@@ -7,7 +7,7 @@
  * components are pure UI over the types re-exported here and never touch a
  * session log directly, which is what `verify-adapter-boundary` enforces.
  *
- * @module @deepseek-harness-tui/dsh-tui/sessions
+ * @module deepseek-harness-cli/sessions
  */
 
 export { classify, readHeader, type RawSessionHeader } from './header.js'

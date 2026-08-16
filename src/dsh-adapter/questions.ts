@@ -7,7 +7,7 @@
  * questionnaire), and settles the harness promise when the user answers,
  * cancels, or the owning tool's abort signal fires.
  *
- * Queue semantics mirror the official dsh-tui chat/questions machine: asks
+ * Queue semantics mirror the official dsh-cli chat/questions machine: asks
  * arrive one at a time in practice (the tool blocks until answered), but
  * concurrent asks from subagents are drained FIFO.
  */

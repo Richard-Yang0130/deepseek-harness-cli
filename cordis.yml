@@ -1,9 +1,9 @@
-# dsh-tui interactive front door over the agent-spine bundle.
+# dsh-cli interactive front door over the agent-spine bundle.
 # Run with: dsh --config cordis.yml (或 npm 安装后走 dsh plugin 机制)
 # Requires DEEPSEEK_API_KEY; a terminal TTY is mandatory.
 
 # The user-interaction service: hosts `ctx.userQuestions`, the seam behind
-# the model-facing ask_user_question tool. dsh-tui registers its questionnaire
+# the model-facing ask_user_question tool. dsh-cli registers its questionnaire
 # provider on it; the service must live at the root so the agent loop's tool
 # execution can reach it.
 - id: user-questions
@@ -11,7 +11,7 @@
 
 # The approval service (issue #49): the harness's sandbox escalation seam
 # (`sandbox_permissions: danger-full-access`) asks ApprovalService.request(),
-# which dispatches an `approval/request` waterfall; dsh-tui registers itself
+# which dispatches an `approval/request` waterfall; dsh-cli registers itself
 # as the interactive answerer (ApprovalStore + approval panel). Without this
 # row the waterfall has no service and fail-closes to 'unavailable'. Policy
 # expression mirrors the profile cordis.patch.yml row exactly (verified by
@@ -23,14 +23,14 @@
   config:
     policy: !!js "process.platform === 'win32' ? 'never' : ((process.env.DSH_PERMISSION_MODE ?? 'workspace-write') === 'danger-full-access' ? 'never' : 'ask')"
 
-- id: dsh-tui-workspaces
-  name: '@deepseek-harness-tui/dsh-tui/workspaces'
+- id: dsh-cli-workspaces
+  name: 'deepseek-harness-cli/workspaces'
 
-- id: dsh-tui-command-trees
-  name: '@deepseek-harness-tui/dsh-tui/command-trees'
+- id: dsh-cli-command-trees
+  name: 'deepseek-harness-cli/command-trees'
 
-- id: dsh-tui
-  name: '@deepseek-harness-tui/dsh-tui'
+- id: dsh-cli
+  name: 'deepseek-harness-cli'
   inject: [agents, tuiWorkspaces]
   config:
     provider: deepseek-official
@@ -181,14 +181,14 @@
 - id: command-goal
   name: '@deepseek-ai/dsh-command-goal'
 
-# Live working line narration support. dsh-tui computes the visible status
+# Live working line narration support. dsh-cli computes the visible status
 # in-process from base session events; activity/status is never persisted.
-# Mounted through @deepseek-harness-tui/dsh-tui's `./working-activity`
+# Mounted through deepseek-harness-cli's `./working-activity`
 # re-export (not the bare `dsh-working-activity` name) so the row resolves
 # from install layouts that never link transitive dependencies into the
 # boot anchor's node_modules — pnpm's isolated profile layout, issue #60.
 - id: working-activity
-  name: '@deepseek-harness-tui/dsh-tui/working-activity'
+  name: 'deepseek-harness-cli/working-activity'
   config:
     publish: false
     publishIntervalMs: 500

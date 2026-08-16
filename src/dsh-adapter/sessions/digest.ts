@@ -17,7 +17,7 @@
  * is the evidence behind {@link SessionTitle.source}, which is why the picker
  * can dim a fallback and explain a name instead of merely displaying one.
  *
- * @module @deepseek-harness-tui/dsh-tui/sessions/digest
+ * @module deepseek-harness-cli/sessions/digest
  */
 import { basename } from 'node:path'
 import { decodeFrames, decodeTail, readWindow, walkFrames, type LogLine } from './frames.js'

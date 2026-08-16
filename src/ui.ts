@@ -1,8 +1,8 @@
 /**
- * Public surface of the ported Ink core, themed for dsh-tui.
+ * Public surface of the ported Ink core, themed for dsh-cli.
  *
  * The original Claude Code source wrapped the Ink core in a themed facade
- * (`src/ink.ts` + design-system ThemedBox/ThemedText). dsh-tui does the same:
+ * (`src/ink.ts` + design-system ThemedBox/ThemedText). dsh-cli does the same:
  * `Box`/`Text` here are the theme-aware versions, so every ported CC
  * component can use `color="subtle"`-style theme keys unchanged.
  */

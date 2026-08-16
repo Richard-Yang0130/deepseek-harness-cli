@@ -13,7 +13,7 @@
  *   single-line rows is windowed by arithmetic, and the group headers simply
  *   travel with their sessions.
  *
- * @module @deepseek-harness-tui/dsh-tui/sessions/view
+ * @module deepseek-harness-cli/sessions/view
  */
 import type { SessionSummary } from '../dsh-adapter/sessions/index.js'
 

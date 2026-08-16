@@ -1,5 +1,5 @@
 /**
- * dsh-tui localization — UI strings for Chinese (`zh`, the default) and
+ * dsh-cli localization — UI strings for Chinese (`zh`, the default) and
  * English (`en`).
  *
  * Resolution order mirrors the `/theme` mechanism (see themePrefs.ts):
@@ -46,12 +46,12 @@ const dict = {
   'preset-switched-pref-failed': { zh: 'Preset 已切换：{{id}}，但默认偏好写入失败（重启后不保留）', en: 'Preset switched: {{id}}, but writing the default preference failed (won\'t persist after restart)' },
   'preset-switched-saved': { zh: 'Preset 已切换：{{id}}（已保存为默认）', en: 'Preset switched: {{id}} (saved as default)' },
   'mcp-none-configured': { zh: '未配置 MCP 服务器。', en: 'No MCP servers configured.' },
-  'mcp-insert-hint': { zh: '在 profile 补丁层（~/.dsh/profiles/dsh-tui/cordis.patch.yml）insert 一行即可，例：', en: 'Insert one line in the profile patch layer (~/.dsh/profiles/dsh-tui/cordis.patch.yml), e.g.:' },
+  'mcp-insert-hint': { zh: '在 profile 补丁层（~/.dsh/profiles/dsh-cli/cordis.patch.yml）insert 一行即可，例：', en: 'Insert one line in the profile patch layer (~/.dsh/profiles/dsh-cli/cordis.patch.yml), e.g.:' },
   'mcp-readme-hint': { zh: '详见仓库 README 的 MCP 章节。', en: 'See the MCP section of the repo README.' },
   'mcp-server-tools': { zh: '{{server}}（{{count}} 个工具）: {{tools}}', en: '{{server}} ({{count}} tools): {{tools}}' },
   'child-stderr-line': { zh: '子进程 stderr: {{line}}', en: 'Subprocess stderr: {{line}}' },
   'child-stderr-line-repeat': { zh: '子进程 stderr: {{line}}（重复 {{count}} 次）', en: 'Subprocess stderr: {{line}} (repeated {{count}}×)' },
-  'export-title': { zh: '# dsh-tui 会话导出', en: '# dsh-tui session export' },
+  'export-title': { zh: '# DeepSeek Harness CLI 会话导出', en: '# DeepSeek Harness CLI session export' },
   'export-time': { zh: '- 导出时间: {{time}}', en: '- Exported: {{time}}' },
   'export-model': { zh: '- 模型: {{model}}', en: '- Model: {{model}}' },
   'export-session': { zh: '- 会话: {{id}}', en: '- Session: {{id}}' },
@@ -81,7 +81,7 @@ const dict = {
   'doctor-config-missing': { zh: '（不存在）', en: '(missing)' },
   'doctor-storage': { zh: '会话存储: {{dir}} {{state}}', en: 'Session storage: {{dir}} {{state}}' },
   'doctor-storage-uninit': { zh: '（未初始化）', en: '(not initialized)' },
-  'doctor-legacy-dir': { zh: '旧数据目录: ~/.dsh-cli 仍存在（已迁移到 ~/.dsh-cli，确认无误后可自行删除）', en: 'Legacy data directory: ~/.dsh-cli still exists (migrated to ~/.dsh-cli; delete it yourself once satisfied)' },
+  'doctor-legacy-dir': { zh: '旧数据目录: ~/.dsh-tui 仍存在（已迁移到 ~/.dsh-cli，确认无误后可自行删除）', en: 'Legacy data directory: ~/.dsh-tui still exists (migrated to ~/.dsh-cli; delete it yourself once satisfied)' },
   'subagent-not-mounted': { zh: '子代理服务未挂载（leaf 未启用 subagent）', en: 'Subagent service not mounted (leaf has no subagent)' },
   'subagent-none': { zh: '当前会话暂无子代理', en: 'No subagents in the current session' },
   'subagent-resumable': { zh: '可续', en: 'resumable' },
@@ -200,7 +200,7 @@ const dict = {
   'cost-note': { zh: '注：DSH 不提供 API 费用计量，以上为 token 用量（按 provider 账单计费）', en: 'Note: DSH provides no API cost metering; the above is token usage (billed by your provider)' },
   'doctor-example-config': { zh: '示例配置  {{path}}', en: 'Example config  {{path}}' },
   'doctor-user-config': { zh: '用户配置  {{path}}', en: 'User config  {{path}}' },
-  'doctor-launch-hint': { zh: '启动方式  dsh-tui.cmd / dsh --profile dsh-tui', en: 'Launch      dsh-tui.cmd / dsh --profile dsh-tui' },
+  'doctor-launch-hint': { zh: '启动方式  dsh-cli.cmd / dsh --profile dsh-cli', en: 'Launch      dsh-cli.cmd / dsh --profile dsh-cli' },
   'doctor-route-hint': { zh: '模型路由  由 cordis.yml 的 llm-deepseek 段决定（/model 仅提示重启生效）', en: 'Model route  set by the llm-deepseek block in cordis.yml (/model only hints at restart)' },
   'export-failed': { zh: '导出失败（无法写入工作目录）', en: 'Export failed (cannot write to working directory)' },
   'export-saved': { zh: '已导出: {{target}}', en: 'Exported: {{target}}' },
@@ -218,7 +218,7 @@ const dict = {
   'login-storage-read-only': { zh: '只读', en: 'read-only' },
   'login-base-url': { zh: 'Base URL: {{url}}', en: 'Base URL: {{url}}' },
   'login-official-endpoint': { zh: '官方端点', en: 'official endpoint' },
-  'login-logout-hint': { zh: '使用 /provider 管理 DSH 凭据；若来源为 env，请删除对应环境变量并重启 dsh-tui', en: 'Manage DSH credentials with /provider; for env sources, remove the corresponding environment variable and restart dsh-tui' },
+  'login-logout-hint': { zh: '使用 /provider 管理 DSH 凭据；若来源为 env，请删除对应环境变量并重启 dsh-cli', en: 'Manage DSH credentials with /provider; for env sources, remove the corresponding environment variable and restart dsh-cli' },
   'permissions-policy-hint': { zh: 'DSH 权限策略由 fs-policy / bash-sandbox 配置决定（当前 leaf：workspace 内读写、写入需已读文件）。', en: 'DSH permission policy is set by fs-policy / bash-sandbox config (current leaf: read/write in workspace, writes need a prior read).' },
   'permissions-approval-hint': { zh: '审批通道已挂载：命令申请权限提升（sandbox_permissions）时弹出审批条，Yes 放行一次、No / Esc 拒绝。', en: 'The approval channel is mounted: sandbox escalations (sandbox_permissions) raise an approval bar — Yes allows once, No / Esc rejects.' },
   'permissions-preset-hint': { zh: '/permission 可查看与切换权限预设（read-only / workspace-write / danger-full-access）。', en: '/permission shows and switches permission presets (read-only / workspace-write / danger-full-access).' },
@@ -228,9 +228,9 @@ const dict = {
   'hooks-mount-hint': { zh: '需要时可在 cordis.yml 挂载对应 hooks 插件。', en: 'Mount the matching hooks plugin in cordis.yml when needed.' },
   'memory-none': { zh: 'DSH 暂无持久记忆服务。', en: 'DSH has no persistent memory service yet.' },
   'memory-hint': { zh: '长期约定可写入 AGENTS.md（工作区上下文）或技能（~/.dsh/skills）。', en: 'Long-term conventions can go into AGENTS.md (workspace context) or skills (~/.dsh/skills).' },
-  'update-unavailable': { zh: '当前运行方式不支持自动更新（需经 dsh --profile 启动），请在终端执行 dsh plugin --profile <name> update @deepseek-harness-tui/dsh-tui', en: 'Automatic update is unavailable in this launch mode (needs dsh --profile). Run dsh plugin --profile <name> update @deepseek-harness-tui/dsh-tui in a terminal.' },
+  'update-unavailable': { zh: '当前运行方式不支持自动更新（需经 dsh --profile 启动），请在终端执行 dsh plugin --profile <name> update deepseek-harness-cli', en: 'Automatic update is unavailable in this launch mode (needs dsh --profile). Run dsh plugin --profile <name> update deepseek-harness-cli in a terminal.' },
   'update-working': { zh: '当前回合仍在运行，请等待完成后再更新 TUI。', en: 'The current turn is still running. Wait for it to finish before updating the TUI.' },
-  'update-starting': { zh: '正在更新 @deepseek-harness-tui/dsh-tui，完成后会自动重启并恢复当前会话……', en: 'Updating @deepseek-harness-tui/dsh-tui. The TUI will restart and resume this session when finished…' },
+  'update-starting': { zh: '正在更新 deepseek-harness-cli，完成后会自动重启并恢复当前会话……', en: 'Updating deepseek-harness-cli. The TUI will restart and resume this session when finished…' },
   'update-available': { zh: '发现新版本：v{{latest}}（当前 v{{current}}）· 输入 /update 更新 TUI', en: 'New version available: v{{latest}} (current v{{current}}) · type /update to update the TUI' },
   'update-already-latest': { zh: '当前已是最新版本（v{{current}}）。', en: 'Already on the latest version (v{{current}}).' },
   'update-check-failed': { zh: '无法确认新版本（网络或 registry 不可达），已尝试直接更新……', en: 'Could not confirm a newer version (network or registry unreachable); attempting the update anyway…' },
@@ -255,11 +255,11 @@ const dict = {
   'tokens-usage-context': { zh: '{{usage}} · 上下文 {{percent}}%', en: '{{usage}} · {{percent}}% of context' },
 
   // ── plugin.ts — boot-time rename notices (issue #120) ───────────────
-  'legacy-dir-migrated': { zh: '数据目录已从 ~/.dsh-cli 复制到 ~/.dsh-cli（旧目录保留，确认无误后可自行删除）', en: 'Data directory copied from ~/.dsh-cli to ~/.dsh-cli (the old directory is kept; delete it yourself once satisfied)' },
+  'legacy-dir-migrated': { zh: '旧数据目录已复制到 ~/.dsh-cli（旧目录保留，确认无误后可自行删除）', en: 'Legacy data copied to ~/.dsh-cli (the old directory is kept; delete it yourself once satisfied)' },
   'legacy-env-renamed': { zh: '环境变量 {{old}} 已更名为 {{new}}，旧名不再生效', en: 'Environment variable {{old}} was renamed to {{new}}; the old name no longer takes effect' },
 
   // ── plugin.ts — /update flow ───────────────────────────────────────
-  'update-aborted-no-profile': { zh: 'dsh-tui 更新中止：未解析到 dsh profile。', en: 'dsh-tui update aborted: no dsh profile resolved.' },
+  'update-aborted-no-profile': { zh: 'dsh-cli 更新中止：未解析到 dsh profile。', en: 'dsh-cli update aborted: no dsh profile resolved.' },
 
   // ── components/ActivityLine.tsx ──────────────────────────────────────
   'activity-ctx-warn': { zh: '⚠ 上下文', en: '⚠ ctx ' },
@@ -567,14 +567,14 @@ const dict = {
   'cmd-desc-compact': { zh: '压缩会话历史' },
   'cmd-desc-resume': { zh: '恢复历史会话' },
   'cmd-desc-rename': { zh: '重命名当前会话' },
-  'cmd-desc-quit': { zh: '退出 dsh-tui' },
-  'cmd-desc-q': { zh: '退出 dsh-tui' },
+  'cmd-desc-quit': { zh: '退出 dsh-cli' },
+  'cmd-desc-q': { zh: '退出 dsh-cli' },
   'cmd-desc-rewind': { zh: '回退会话到历史消息' },
   'cmd-desc-export': { zh: '导出会话为 Markdown 文件' },
   // Session / environment
   'cmd-desc-status': { zh: '查看会话状态' },
   'cmd-desc-cost': { zh: '查看会话 token 用量' },
-  'cmd-desc-config': { zh: '查看 dsh-tui 配置来源' },
+  'cmd-desc-config': { zh: '查看 dsh-cli 配置来源' },
   'cmd-desc-doctor': { zh: '运行环境检查' },
   'cmd-desc-init': { zh: '在工作目录创建 AGENTS.md' },
   'cmd-desc-agents': { zh: '查看本会话的子代理' },
@@ -595,11 +595,11 @@ const dict = {
   'cmd-desc-hooks': { zh: '查看 hooks 状态' },
   'cmd-desc-mcp': { zh: '查看 MCP 状态' },
   'cmd-desc-memory': { zh: '查看记忆状态' },
-  'cmd-desc-update': { zh: '更新 dsh-tui 并重启' },
+  'cmd-desc-update': { zh: '更新 dsh-cli 并重启' },
   // Built-in skills
   'cmd-desc-audit': { zh: '对当前项目做全面代码审计' },
   'cmd-desc-bug': { zh: '记录一份 bug 报告' },
-  'cmd-desc-practice': { zh: '与 dsh-tui 进行编程练习' },
+  'cmd-desc-practice': { zh: '与 dsh-cli 进行编程练习' },
   'cmd-desc-review': { zh: '对当前项目做全面代码评审' },
   'cmd-desc-pr_comments': { zh: '审查拉取请求评论' },
   'cmd-desc-release-notes': { zh: '生成发布说明' },
@@ -614,7 +614,7 @@ const dict = {
   'cmd-desc-workspace-open': { zh: '打开路径或工作区 URI', en: 'Open a path or workspace URI' },
   // Help / exit
   'cmd-desc-help': { zh: '查看快捷键与命令' },
-  'cmd-desc-exit': { zh: '退出 dsh-tui' },
+  'cmd-desc-exit': { zh: '退出 dsh-cli' },
   // Registry-injected (external) commands — zh only; en falls back to the
   // registry's own description, and unlisted externals always fall back.
   'cmd-desc-plan': { zh: '切换计划模式（/plan off 退出）' },

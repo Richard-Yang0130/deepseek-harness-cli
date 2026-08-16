@@ -12,7 +12,7 @@ import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const OWNER = '@deepseek-harness-tui/dsh-tui'
+const OWNER = 'deepseek-harness-cli'
 const MARKER = '.dsh-cli-managed.json'
 
 interface ManagedMarker {
@@ -55,13 +55,13 @@ export function packagedPresetRoot(moduleUrl: string = import.meta.url): string 
   const candidates = [join(directory, '../../presets'), join(directory, '../../../presets')]
   const found = candidates.find(candidate => existsSync(candidate))
   if (found === undefined) {
-    throw new Error(`dsh-tui: packaged preset root is missing (checked ${candidates.join(', ')})`)
+    throw new Error(`dsh-cli: packaged preset root is missing (checked ${candidates.join(', ')})`)
   }
   return found
 }
 
 /**
- * Materialize presets shipped by dsh-tui into the Harness user preset root.
+ * Materialize presets shipped by dsh-cli into the Harness user preset root.
  *
  * The official launcher replaces the roster's configured roots with its own
  * shipped root at the end of profile composition, so a bundle patch cannot
@@ -81,7 +81,7 @@ export function ensurePackagedPresets(options: PackagedPresetOptions = {}): Pack
     const source = join(sourceRoot, id)
     const sourceMarker = readMarker(source)
     if (sourceMarker === undefined || sourceMarker.preset !== id) {
-      throw new Error(`dsh-tui: packaged preset ${id} has no valid ${MARKER}`)
+      throw new Error(`dsh-cli: packaged preset ${id} has no valid ${MARKER}`)
     }
 
     const target = join(targetRoot, id)

@@ -4,11 +4,11 @@
     "storage-json",
     "storage-domain",
     "workspace",
-    "dsh-tui-workspaces",
-    "dsh-tui-command-trees",
+    "dsh-cli-workspaces",
+    "dsh-cli-command-trees",
     "agent-presets",
     "cordis-host-runner",
-    "dsh-tui",
+    "dsh-cli",
     "working-activity"
   ],
   "configOverrides": [

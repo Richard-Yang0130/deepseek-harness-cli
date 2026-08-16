@@ -36,7 +36,7 @@
  * a wrong session. Retires the day upstream's shared catalog adopts the
  * type or ships a real registration API (the add() calls become no-ops).
  *
- * @module @deepseek-harness-tui/dsh-tui/compat/sessionLog
+ * @module deepseek-harness-cli/compat/sessionLog
  */
 import { createRequire } from 'node:module'
 import {
@@ -156,7 +156,7 @@ function decodeEvents(buf: Buffer): Record<string, unknown>[] {
  * upgrades, pnpm peer-context splits), and the strict validator — which
  * lives in the dsh-session-persistence package — consults only ITS OWN
  * tree's copy. Registering through one import leaves the other trees'
- * copies untouched. So from EACH base anchor (this module = the dsh-tui
+ * copies untouched. So from EACH base anchor (this module = the dsh-cli
  * tree, the process entry point = the launcher/CLI tree) the walk
  * registers the tree's own dsh-session AND steps one edge further:
  * resolve the validator package from that same tree, then register the

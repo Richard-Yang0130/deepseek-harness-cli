@@ -8,7 +8,7 @@ import { modLabel } from '../utils/modifiers.js'
 
 /**
  * The `?` help menu, mirroring Claude Code's `PromptInputHelpMenu.tsx`
- * (three-column shortcut layout, trimmed to the keys dsh-tui actually binds).
+ * (three-column shortcut layout, trimmed to the keys dsh-cli actually binds).
  * The command column lists the merged slash-command surface: built-in
  * commands plus plugin-registered ones from the DSH registry (plan/goal/…).
  * Skill entries (user-invocable skills merged for `/` completion, issue

@@ -9,7 +9,7 @@ type BaseProps = {
    */
   readonly color?: Color;
   /**
-   * Ref to the underlying ink-text DOMElement. dsh-tui addition: lets
+   * Ref to the underlying ink-text DOMElement. dsh-cli addition: lets
    * useDeclaredCursor park the native cursor on an inline caret cell without
    * wrapping it in a Box (a wrapper Box changes flex shrink behaviour and
    * breaks wrapped-line layouts).

@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises'
+import { readdir, readFile } from 'node:fs/promises'
 
 const manifest = JSON.parse(
   await readFile(new URL('../package.json', import.meta.url), 'utf8'),
@@ -29,6 +29,39 @@ if (!pathsSource.includes("'.dsh-cli'")) {
 
 if (!pathsSource.includes("DSH_TUI_THEME: 'DSH_CLI_THEME'")) {
   failures.push('DSH_TUI_THEME compatibility mapping is absent')
+}
+
+async function sourceFiles(path) {
+  const entries = await readdir(new URL(`../${path}/`, import.meta.url), {
+    withFileTypes: true,
+  })
+  const files = []
+  for (const entry of entries) {
+    const child = `${path}/${entry.name}`
+    if (entry.isDirectory()) files.push(...await sourceFiles(child))
+    else files.push(child)
+  }
+  return files
+}
+
+const visibleBrandFiles = [
+  ...await sourceFiles('src'),
+  ...await sourceFiles('bin'),
+  'cordis.patch.yml',
+  'cordis.yml',
+]
+const forbiddenVisibleBrands = [
+  '@deepseek-harness-tui/dsh-tui',
+  '[dsh-tui]',
+  'dsh --profile dsh-tui',
+  'dsh-TUI',
+]
+
+for (const file of visibleBrandFiles) {
+  const content = await readFile(new URL(`../${file}`, import.meta.url), 'utf8')
+  for (const forbidden of forbiddenVisibleBrands) {
+    if (content.includes(forbidden)) failures.push(`${file}: ${forbidden}`)
+  }
 }
 
 if (failures.length > 0) {

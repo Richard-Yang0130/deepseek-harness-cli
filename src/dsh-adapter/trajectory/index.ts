@@ -6,7 +6,7 @@
  * ledger, the wave band and the hotspot view are pure UI over the types and
  * functions re-exported here; they never touch a session event directly.
  *
- * @module @deepseek-harness-tui/dsh-tui/trajectory
+ * @module deepseek-harness-cli/trajectory
  */
 
 export {

@@ -248,7 +248,7 @@ export async function editInExternalEditor(draft: string): Promise<EditorOutcome
   let handed = false
   let dir: string | undefined
   try {
-    dir = await mkdtemp(join(tmpdir(), 'dsh-tui-prompt-'))
+    dir = await mkdtemp(join(tmpdir(), 'dsh-cli-prompt-'))
     // .md so markdown-aware editors highlight the draft like a chat message.
     const file = join(dir, 'input.md')
     await writeFile(file, draft, 'utf8')

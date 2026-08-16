@@ -58,7 +58,7 @@ if (packed.has('lib/invariant.js')) {
 
 await import(new URL(`../${manifest.main}`, import.meta.url))
 const invariant = await import(new URL('../lib/types/dsh-adapter/invariant.js', import.meta.url))
-if (invariant.name !== 'dsh-tui-invariant' || typeof invariant.apply !== 'function') {
+if (invariant.name !== 'dsh-cli-invariant' || typeof invariant.apply !== 'function') {
   throw new Error('compiled invariant entry does not expose the expected contract')
 }
 

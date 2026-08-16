@@ -1,5 +1,5 @@
 /**
- * dsh-tui color themes — Gentle Mist Blue (雾蓝) family.
+ * dsh-cli color themes — Gentle Mist Blue (雾蓝) family.
  *
  * Two truecolor palettes share one identity: mist blues carry brand, focus,
  * and interaction; body text stays neutral. `light` is the strict Gentle

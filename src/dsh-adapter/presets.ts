@@ -34,7 +34,7 @@ export interface AgentPresetInfo {
   readonly broken?: string
 }
 
-/** The `ctx.agentPresets` service surface dsh-tui consumes. */
+/** The `ctx.agentPresets` service surface dsh-cli consumes. */
 export interface AgentPresetsLike {
   readonly defaultId: string
   list(): Promise<readonly AgentPresetInfo[]>
@@ -82,7 +82,7 @@ export async function composePreset(ctx: Context, requested?: string): Promise<P
     resolvedId = (await presets.resolve(requested)).id
   } catch (error) {
     ctx.logger.warn(
-      `dsh-tui: agent preset ${requested === undefined ? '(default)' : `"${requested}"`} unavailable ` +
+      `dsh-cli: agent preset ${requested === undefined ? '(default)' : `"${requested}"`} unavailable ` +
         `(${error instanceof Error ? error.message : String(error)}) — composing the session without a preset`,
     )
     return {}

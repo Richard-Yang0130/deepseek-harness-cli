@@ -16,7 +16,7 @@
  *    every reachable KNOWN_SESSION_EVENT_TYPES copy — retiring the day
  *    upstream's shared catalog adopts the types or ships a real
  *    registration API (issue #153).
- * @module @deepseek-harness-tui/dsh-tui/compat
+ * @module deepseek-harness-cli/compat
  */
 export {
   appendSessionTitle,

@@ -1,5 +1,5 @@
 /**
- * Launcher contract for `dsh-tui --resume`: the TUI writes the chosen session
+ * Launcher contract for `dsh-cli --resume`: the TUI writes the chosen session
  * id to `~/.dsh-cli/resume.txt`, and the launcher feeds it back as
  * `DSH_CLI_RESUME_SESSION`. Session *records* live in DSH's own persistence
  * backend (dsh-session-persistence-jsonl) — `/resume` lists those via
@@ -45,7 +45,7 @@ export function clearResumeTarget(): void {
 }
 
 /**
- * The session id requested by `dsh-tui --resume`, if any. The new path
+ * The session id requested by `dsh-cli --resume`, if any. The new path
  * wins; the legacy path is the fallback for pre-rename launchers.
  * @returns The stored session id, or undefined when none is set.
  */

@@ -1,17 +1,17 @@
-# The dsh-tui bundle patch: the interactive terminal front door over the
+# The dsh-cli bundle patch: the interactive terminal front door over the
 # dsh-base layer. Applied after dsh-base's insert; rows here override base
 # rows by id, with the profile's own cordis.patch.yml and any --patch
 # overlays still to come.
 #
 # A patch replaces the targeted row's whole `config`, so each row below
 # restates every key it owns (see the dsh-base patch for the shared
-# defaults). The dsh-base core rows that need no dsh-tui value — tools,
+# defaults). The dsh-base core rows that need no dsh-cli value — tools,
 # sandbox/approval policy, skills, goal, plan mode, workspace context,
 # telemetry — are inherited unchanged.
 
 # ── surface-specific values over the dsh-base layer ─────────────────────────
 
-# The dsh-tui deployment persona; DSH_CLI_PERSONA overrides the coding-agent
+# The dsh-cli deployment persona; DSH_CLI_PERSONA overrides the coding-agent
 # default (the base persona is empty).
 - id: system-prompt
   config:
@@ -148,11 +148,11 @@
   config:
     root: !!js process.env.DSH_CLI_SESSION_ROOT ?? dshHomePath('sessions')
 
-# ── dsh-tui rows ────────────────────────────────────────────────────────────
+# ── dsh-cli rows ────────────────────────────────────────────────────────────
 
 # The `user-interaction` service row comes from the dsh-base bundle layer
 # (mounted before this layer); do not insert it again — the include patch
-# semantics would create a duplicate row. dsh-tui defensively creates the
+# semantics would create a duplicate row. dsh-cli defensively creates the
 # service on its own context when no composition provides it (bare
 # `dsh --config cordis.yml` boots), then mounts the model-facing
 # ask_user_question tool and registers the questionnaire provider on
@@ -180,13 +180,13 @@
 
     # Generic terminal workspace registry. Optional plugins add providers;
     # the TUI itself always supplies LOCAL and has no provider-specific code.
-    - id: dsh-tui-workspaces
-      name: '@deepseek-harness-tui/dsh-tui/workspaces'
+    - id: dsh-cli-workspaces
+      name: 'deepseek-harness-cli/workspaces'
 
     # Optional plugins contribute nested slash-command completion here;
     # execution and durable command events remain owned by dsh-commands.
-    - id: dsh-tui-command-trees
-      name: '@deepseek-harness-tui/dsh-tui/command-trees'
+    - id: dsh-cli-command-trees
+      name: 'deepseek-harness-cli/command-trees'
 
     # The agent-preset roster (issue #8): `ctx.agentPresets`, the service the
     # TUI composes every session's model-facing world from. No `roots` here —
@@ -209,17 +209,17 @@
 
     # The interactive front door. The plugin creates/resumes its agent at
     # runtime, seeds the startup status line, and disposes the whole app tree
-    # (exiting the process) when the TUI unmounts. `dsh-tui --resume`
+    # (exiting the process) when the TUI unmounts. `dsh-cli --resume`
     # feeds the session id through DSH_CLI_RESUME_SESSION (the pre-rename
     # DSH_CC_RESUME_SESSION is still honored as a fallback for old
     # launchers — TODO: drop once they age out, issue #120).
-    - id: dsh-tui
-      name: '@deepseek-harness-tui/dsh-tui'
+    - id: dsh-cli
+      name: 'deepseek-harness-cli'
       # The entry-level dependency augments the plugin's `agents` inject and
       # prevents startup Session creation from racing WorkspaceRegistry init.
       inject: [workspaceRegistry, agents, tuiWorkspaces]
       # `tuiWorkspaces` lives in the entry-level inject ONLY as an ordering
-      # guarantee alongside the dsh-tui-workspaces row above — it is
+      # guarantee alongside the dsh-cli-workspaces row above — it is
       # deliberately absent from the plugin's code-level inject (issue
       # #183): the dsh CLI may read this patch from an older copy of the
       # package than the plugin module it loads, and a hard code-level
@@ -267,7 +267,7 @@
         sessionId: !!js process.env.DSH_CLI_RESUME_SESSION ?? process.env.DSH_CC_RESUME_SESSION ?? undefined
 
     # Live working-line data source (thinking copy / running tool / turn
-    # summary). Mounted through @deepseek-harness-tui/dsh-tui's own
+    # summary). Mounted through deepseek-harness-cli's own
     # `./working-activity` re-export, NOT the bare `dsh-working-activity`
     # name: the dsh Loader resolves row names from the profile directory,
     # and pnpm's isolated node_modules layout never links a transitive
@@ -278,7 +278,7 @@
     # TUI derives its working line in-process from the base session stream;
     # never persist activity/status, so the shared log remains Web-readable.
     - id: working-activity
-      name: '@deepseek-harness-tui/dsh-tui/working-activity'
+      name: 'deepseek-harness-cli/working-activity'
       config:
         publish: false
         publishIntervalMs: 500

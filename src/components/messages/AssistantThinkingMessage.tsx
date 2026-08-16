@@ -21,7 +21,7 @@ type Props = {
  * Thinking block: folded `∴ Thinking (ctrl+o to expand)`, expanded shows the
  * full reasoning text indented under `∴ Thinking…`, mirroring Claude Code's
  * `messages/AssistantThinkingMessage.tsx`. When the channel records the
- * reasoning duration, the label carries it (`∴ Thinking · 12s …`) — dsh-tui's
+ * reasoning duration, the label carries it (`∴ Thinking · 12s …`) — dsh-cli's
  * take on making thinking time visible in the transcript.
  */
 export function AssistantThinkingMessage({

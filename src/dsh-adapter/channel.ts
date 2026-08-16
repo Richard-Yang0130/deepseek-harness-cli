@@ -120,7 +120,7 @@ export type ToolResultView =
     }
   | { readonly card: 'search'; readonly shape: 'paths'; readonly title?: string; readonly paths: readonly string[]; readonly truncated: boolean; readonly total: number }
 
-/** The dsh-tools registry seam dsh-tui reads presentations through. The
+/** The dsh-tools registry seam dsh-cli reads presentations through. The
  *  registry lives on the host plane; `get` takes the live agent as the
  *  scope so a preset's own tool definitions resolve (dsh-host-apiproxy's
  *  presenter pattern). */
@@ -491,7 +491,7 @@ export interface Channel {
   listSessions(): Promise<readonly SessionSummary[]>
   /** Trailing exchanges of a persisted session, for the browser's preview. */
   previewSession(sessionId: string): Promise<readonly PreviewEntry[]>
-  /** Mark a session for `dsh-tui --resume` on the next launch. */
+  /** Mark a session for `dsh-cli --resume` on the next launch. */
   setResumeTarget(sessionId: string): void
   /** Rename the current session (CC's /rename): appends a `session/title`
    *  event, which the status line and the /resume picker both read. */
@@ -511,7 +511,7 @@ export interface Channel {
   pushLocal(title: string, lines: readonly string[]): void
   /** MCP server/tool status for /mcp: one line per server, or setup guidance. */
   mcpStatus(): string[]
-  /** Write the conversation transcript to `dsh-tui-export-<ts>.md` in the
+  /** Write the conversation transcript to `dsh-cli-export-<ts>.md` in the
    *  session cwd; returns the written path, or null on failure. */
   exportSession(): string | null
   /** Create `AGENTS.md` in the session cwd (DSH workspace-context file);
@@ -1032,7 +1032,7 @@ export function createChannel(
   // built-in local commands exist.
   const commandService: CommandRuntime | undefined = ctx.get('commands')
   // Workspace registry runtime (optional service, issue #183): mounted by
-  // the bundle patch's dsh-tui-workspaces row; absent the row (stale patch
+  // the bundle patch's dsh-cli-workspaces row; absent the row (stale patch
   // or a bare embedder), degrade to the local-only runtime. plugin.ts owns
   // the degraded-boot warning for profile launches.
   const workspaceService = ctx.get('tuiWorkspaces') ?? createLocalWorkspaceRuntime()
@@ -1042,7 +1042,7 @@ export function createChannel(
   const { modes: sessionModes, dropped: droppedModeIds } = resolveSessionModes(options.modes)
   if (droppedModeIds.length > 0) {
     ctx.logger.warn(
-      `dsh-tui: session modes ${droppedModeIds.map(id => `"${id}"`).join(', ')} declare no plan/sandbox/approval atom; dropped from the Shift+Tab cycle`,
+      `dsh-cli: session modes ${droppedModeIds.map(id => `"${id}"`).join(', ')} declare no plan/sandbox/approval atom; dropped from the Shift+Tab cycle`,
     )
   }
   const listeners = new Set<() => void>()
@@ -2479,7 +2479,7 @@ export function createChannel(
         ...agent.session.deriveMessages(),
         createUserMessage({
           content: [{ type: 'text', text: wrapSideQuestion(question) }],
-          source: { kind: 'plugin', plugin: 'dsh-tui/btw' },
+          source: { kind: 'plugin', plugin: 'dsh-cli/btw' },
         }),
       ]
       const request: Record<string, unknown> = {
@@ -2551,7 +2551,7 @@ export function createChannel(
       if (deleteSessionLog(sessionId) !== 'deleted') return false
       forgetSession(sessionId)
       // A resume marker naming the deleted session would make the next
-      // `dsh-tui --resume` launch target a log that no longer exists.
+      // `dsh-cli --resume` launch target a log that no longer exists.
       if (readResumeTarget() === sessionId) clearResumeTarget()
       return true
     },
@@ -2708,7 +2708,7 @@ export function createChannel(
             break
         }
       }
-      const fileName = `dsh-tui-export-${Date.now()}.md`
+      const fileName = `dsh-cli-export-${Date.now()}.md`
       try {
         const target = join(state.cwd, fileName)
         writeFileSync(target, parts.join('\n'), 'utf8')
@@ -3931,7 +3931,7 @@ ${output}
   const effect = (ctx as Context & {
     effect?: (setup: () => () => void, label?: string) => void
   }).effect
-  effect?.call(ctx, () => () => { stopActivityTick() }, 'dsh-tui activity timer')
+  effect?.call(ctx, () => () => { stopActivityTick() }, 'dsh-cli activity timer')
   // Statusline breadcrumb: current git branch of the session cwd (best-effort).
   // Re-run when an agent swap adopts a different persisted cwd (/resume,
   // issue #96) so the breadcrumb never shows the previous workspace's branch.

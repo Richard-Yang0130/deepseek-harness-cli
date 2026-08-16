@@ -46,25 +46,25 @@ import { CLEAR_ITERM2_PROGRESS, CLEAR_TAB_STATUS, supportsTabStatus, wrapForMult
 export async function apply(ctx: Context, config: Config): Promise<void> {
   applyLegacyEnv()
   if (!process.stdout.isTTY) {
-    throw new Error('dsh-tui requires an interactive terminal (stdout must be a TTY).')
+    throw new Error('dsh-cli requires an interactive terminal (stdout must be a TTY).')
   }
 
   // The official profile launcher owns the system preset root and replaces
-  // any bundle-supplied roots at boot. Install dsh-tui's bundled presets via
+  // any bundle-supplied roots at boot. Install dsh-cli's bundled presets via
   // the roster's supported user-root seam before resolving the first agent.
   // Never overwrite an existing directory unless it carries our marker.
   try {
     for (const result of ensurePackagedPresets()) {
       if (result.status === 'conflict') {
         ctx.logger.warn(
-          `dsh-tui: packaged preset "${result.id}" was not installed because an unmanaged preset already uses that id`,
+          `dsh-cli: packaged preset "${result.id}" was not installed because an unmanaged preset already uses that id`,
         )
       }
     }
   } catch (error) {
     // A read-only home must not make the whole terminal unusable; the other
     // official and user presets remain available.
-    ctx.logger.warn(`dsh-tui: unable to install packaged presets (${error instanceof Error ? error.message : String(error)})`)
+    ctx.logger.warn(`dsh-cli: unable to install packaged presets (${error instanceof Error ? error.message : String(error)})`)
   }
 
   // Data-directory rename (~/.dsh-cc → ~/.dsh-cli, issue #120): copy the
@@ -82,17 +82,17 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
 
   // Rename notices must land before the first render — stderr writes break
   // the fullscreen UI once it is up. The bin launcher prints the same
-  // warnings; this covers direct `dsh --profile dsh-tui` boots.
+  // warnings; this covers direct `dsh --profile dsh-cli` boots.
   if (migrated) {
-    ctx.logger.warn('dsh-tui: data directory copied from ~/.dsh-cc to ~/.dsh-cli (legacy kept)')
+    ctx.logger.warn('dsh-cli: legacy data directory copied to ~/.dsh-cli (legacy kept)')
     if (process.stderr.isTTY) {
-      process.stderr.write(`\n[dsh-tui] ${t('legacy-dir-migrated')}\n`)
+      process.stderr.write(`\n[dsh-cli] ${t('legacy-dir-migrated')}\n`)
     }
   }
   for (const oldName of detectLegacyEnv()) {
-    ctx.logger.warn(`dsh-tui: env ${oldName} renamed to ${RENAMED_ENV[oldName]}; the old name no longer takes effect`)
+    ctx.logger.warn(`dsh-cli: env ${oldName} renamed to ${RENAMED_ENV[oldName]}; the old name no longer takes effect`)
     if (process.stderr.isTTY) {
-      process.stderr.write(`\n[dsh-tui] ${t('legacy-env-renamed', { old: oldName, new: RENAMED_ENV[oldName] })}\n`)
+      process.stderr.write(`\n[dsh-cli] ${t('legacy-env-renamed', { old: oldName, new: RENAMED_ENV[oldName] })}\n`)
     }
   }
 
@@ -110,7 +110,7 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
       const now = installedTuiVersion()
       if (now === undefined || !isVersionNewer(now, updatedFrom)) {
         ctx.logger.warn(
-          `dsh-tui: /update restarted but the version did not advance (still ${now ?? 'unknown'}, was ${updatedFrom})`,
+          `dsh-cli: /update restarted but the version did not advance (still ${now ?? 'unknown'}, was ${updatedFrom})`,
         )
         if (process.stderr.isTTY) {
           process.stderr.write(
@@ -216,17 +216,17 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
   // here — the agent meta and the channel must agree.
   const requestedWorkspace = config.workspace ?? process.env.DSH_CLI_WORKSPACE_TARGET
   // Degraded boot (issue #183): a stale bundle patch without the
-  // dsh-tui-workspaces row leaves the service unmounted; resolve startup
+  // dsh-cli-workspaces row leaves the service unmounted; resolve startup
   // targets through the local-only runtime (provider URIs then fail loud
   // below instead of crashing on an undefined service). A profile launch
-  // without the service means the patch came from an older dsh-tui copy
+  // without the service means the patch came from an older dsh-cli copy
   // than the running code — warn once so the skew is diagnosable. Bare
   // embedders (no --profile) take the same fallback by design, silently.
   const mountedWorkspaceService = ctx.get('tuiWorkspaces')
   if (mountedWorkspaceService === undefined && resolveDshProfileName() !== undefined) {
     ctx.logger.warn(
-      'dsh-tui: tuiWorkspaces service is not mounted; /workspace runs with the local-only fallback. ' +
-      'The bundle patch is older than the installed dsh-tui package — update the globally installed dsh-tui launcher to match the profile (issue #183).',
+      'dsh-cli: tuiWorkspaces service is not mounted; /workspace runs with the local-only fallback. ' +
+      'The bundle patch is older than the installed dsh-cli package — update the globally installed dsh-cli launcher to match the profile (issue #183).',
     )
   }
   const workspaceService = mountedWorkspaceService ?? createLocalWorkspaceRuntime()
@@ -234,7 +234,7 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
     ? undefined
     : await workspaceService.resolve(requestedWorkspace)
   if (requestedWorkspace !== undefined && initialWorkspace === undefined) {
-    throw new Error(`dsh-tui: unsupported or unavailable workspace target: ${requestedWorkspace}`)
+    throw new Error(`dsh-cli: unsupported or unavailable workspace target: ${requestedWorkspace}`)
   }
   const sessionCwd = initialWorkspace?.cwd ?? resolveSessionCwd(config.cwd)
   const meta = { cwd: sessionCwd }
@@ -253,7 +253,7 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
     const attached = await attachSessionToWorkspace(ctx, meta.cwd, agent.session.id)
     if (!attached) {
       ctx.logger.warn(
-        `dsh-tui: session "${agent.session.id}" has no workspace ownership because workspaceRegistry is not mounted`,
+        `dsh-cli: session "${agent.session.id}" has no workspace ownership because workspaceRegistry is not mounted`,
       )
     }
   } catch (error) {
@@ -261,7 +261,7 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
     // failure contract. Keep the TUI usable but make the missing ownership
     // loud instead of silently leaving the conversation Ungrouped.
     ctx.logger.warn(
-      `dsh-tui: session "${agent.session.id}" workspace attachment failed: ${error instanceof Error ? error.message : String(error)}`,
+      `dsh-cli: session "${agent.session.id}" workspace attachment failed: ${error instanceof Error ? error.message : String(error)}`,
     )
   }
 
@@ -314,7 +314,7 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
     ctx.effect(() => () => approvalStore.settleAll('cancelled'))
   }
   // Positional command-line arguments are the initial prompt (issue #53):
-  // `dsh-tui "run the tests"` forwards positionals through the dsh CLI,
+  // `dsh-cli "run the tests"` forwards positionals through the dsh CLI,
   // which mounts them as ctx.cmdlineArgs. Submit once the channel exists —
   // delivery goes through the normal pending/inbox chain, so no special
   // timing is needed; flag-shaped leftovers are not prompt text.
@@ -356,13 +356,13 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
       exited = true
       if (error !== undefined) {
         const message = error instanceof Error ? error.message : String(error)
-        ctx.logger.error(`dsh-tui: exit after error: ${message}`)
+        ctx.logger.error(`dsh-cli: exit after error: ${message}`)
         void finishExit(
           ctx,
           instance,
           config.fullscreen === true,
           undefined,
-          `dsh-tui crashed: ${message}`,
+          `dsh-cli crashed: ${message}`,
           () => disposeRootAndExit(ctx, 1),
         )
         return
@@ -377,7 +377,7 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
           ctx,
           instance,
           config.fullscreen === true,
-          'Updating @deepseek-harness-tui/dsh-tui and restarting…',
+          'Updating deepseek-harness-cli and restarting…',
           undefined,
           () => runUpdate(ctx, profile, channel.agentId, updateTargetVersion),
         )
@@ -493,7 +493,7 @@ export async function apply(ctx: Context, config: Config): Promise<void> {
 }
 
 /**
- * Attach to an existing agent, resume a persisted session (`dsh-tui --resume`
+ * Attach to an existing agent, resume a persisted session (`dsh-cli --resume`
  * feeds the id through `config.sessionId`), or create a fresh one. Resume
  * goes through the DSH persistence seam (`ctx.agents.resume` reads the
  * session log written by dsh-session-persistence-jsonl); a missing artifact
@@ -559,7 +559,7 @@ async function resolveAgent(
       // No artifact (first run / cleared storage) or persistence not
       // mounted: fall through to a fresh session, but stay loud in the log.
       ctx.logger.warn(
-        `dsh-tui: resume of "${requestedSessionId}" failed: ${error instanceof Error ? error.message : String(error)}`,
+        `dsh-cli: resume of "${requestedSessionId}" failed: ${error instanceof Error ? error.message : String(error)}`,
       )
     }
   }
@@ -576,7 +576,7 @@ async function resolveAgent(
   const { route, rejected } = await validateModelRoute(llm, startupRoute)
   if (rejected !== undefined) {
     ctx.logger.warn(
-      `dsh-tui: model route ${rejected.provider}/${rejected.model} is not advertised by provider "${rejected.provider}"; falling back to ${route.provider}/${route.model}`,
+      `dsh-cli: model route ${rejected.provider}/${rejected.model} is not advertised by provider "${rejected.provider}"; falling back to ${route.provider}/${route.model}`,
     )
   }
   const created = await ctx.agents.create({
@@ -593,7 +593,7 @@ async function resolveAgent(
     // the worst outcome for a misconfigured leaf (unknown provider/model).
     const message = error instanceof Error ? error.message : String(error)
     throw new Error(
-      `dsh-tui: failed to create agent (provider=${route.provider}, model=${route.model}): ${message}`,
+      `dsh-cli: failed to create agent (provider=${route.provider}, model=${route.model}): ${message}`,
     )
   })
   return { agent: created.agent, handle: created, agentPreset: composed.agentPreset, route }
@@ -675,14 +675,14 @@ async function finishExit(
   try {
     const runtime = readInkShutdownState(instances.get(process.stdout))
     if (runtime === undefined && instance !== undefined) {
-      ctx.logger.debug('dsh-tui: Ink runtime unavailable during shutdown; using generic terminal cleanup')
+      ctx.logger.debug('dsh-cli: Ink runtime unavailable during shutdown; using generic terminal cleanup')
     }
     const cursor = fullscreen ? '' : cursorMoveToFrameEnd(runtime)
 
     try {
       runtime?.detachForShutdown?.()
     } catch {
-      ctx.logger.debug('dsh-tui: Ink shutdown detach failed; continuing with generic terminal cleanup')
+      ctx.logger.debug('dsh-cli: Ink shutdown detach failed; continuing with generic terminal cleanup')
     }
     const cleanup = [
       fullscreen ? EXIT_ALT_SCREEN : '',
@@ -703,7 +703,7 @@ async function finishExit(
       await writeStream(process.stderr, `\n${stderrNotice}\n`)
     }
   } catch {
-    ctx.logger.debug('dsh-tui: terminal cleanup failed; continuing with process shutdown')
+    ctx.logger.debug('dsh-cli: terminal cleanup failed; continuing with process shutdown')
   }
   done()
 }
@@ -794,7 +794,7 @@ function runUpdate(
 
 /**
  * Dispose the whole application before process exit, with a bounded fallback.
- * Mirrors the deleted dsh-tui front-door exit semantics.
+ * Mirrors the deleted dsh-cli front-door exit semantics.
  */
 function disposeRootAndExit(ctx: Context, code: number): void {
   disposeRootAndThen(ctx, () => process.exit(code), code)
@@ -802,16 +802,16 @@ function disposeRootAndExit(ctx: Context, code: number): void {
 
 /**
  * The real way back into a session after the TUI process is gone. The
- * package ships no `dsh-tui` bin — resuming means feeding the session id
+ * package ships no `dsh-cli` bin — resuming means feeding the session id
  * through `DSH_CLI_RESUME_SESSION` (what cordis.patch.yml's `sessionId`
  * reads; the pre-rename DSH_CC_ spelling still works, issue #120) and
- * booting the same profile; on Windows the repo's dsh-tui.cmd wrapper
+ * booting the same profile; on Windows the repo's dsh-cli.cmd wrapper
  * does this via --resume + ~/.dsh-cli/resume.txt.
  */
 function resumeCommand(profile: string | undefined, sessionId: string): string {
   const boot = profile === undefined ? 'dsh --config cordis.yml' : `dsh --profile ${profile}`
   return process.platform === 'win32'
-    ? `dsh-tui --resume ${sessionId}`
+    ? `dsh-cli --resume ${sessionId}`
     : `DSH_CLI_RESUME_SESSION=${sessionId} ${boot}`
 }
 

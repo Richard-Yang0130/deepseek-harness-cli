@@ -29,7 +29,7 @@
  * 14k-event log decodes to exactly one line through either. They decode a
  * frame; they do not traverse a chain.
  *
- * @module @deepseek-harness-tui/dsh-tui/sessions/frames
+ * @module deepseek-harness-cli/sessions/frames
  */
 import { closeSync, openSync, readSync, statSync } from 'node:fs'
 import { zstdDecompressSync } from 'node:zlib'

@@ -1,20 +1,20 @@
 /**
- * Package-owned invariant companion for `@deepseek-harness-tui/dsh-tui`.
+ * Package-owned invariant companion for `deepseek-harness-cli`.
  *
  * The vendored Ink core under `src/ink` is third-party code written against
  * looser compiler flags; the relaxed `tsconfig` options exist only for that
  * subtree and must not spread to new code.
- * @module @deepseek-harness-tui/dsh-tui/invariant
+ * @module deepseek-harness-cli/invariant
  */
 
 /* jscpd:ignore-start */
 import type { Context } from '@deepseek-ai/cordis'
 import type { InvariantInstaller } from '@deepseek-ai/dsh-invariants'
 
-const PACKAGE_NAME = '@deepseek-harness-tui/dsh-tui'
+const PACKAGE_NAME = 'deepseek-harness-cli'
 
 /** Cordis companion plugin name. */
-export const name = 'dsh-tui-invariant'
+export const name = 'dsh-cli-invariant'
 /** Service required before the companion can reserve package ownership. */
 export const inject = ['invariants']
 

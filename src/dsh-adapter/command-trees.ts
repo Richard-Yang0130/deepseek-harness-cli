@@ -18,7 +18,7 @@ declare module '@deepseek-ai/cordis' {
   }
 }
 
-export const name = 'dsh-tui-command-trees'
+export const name = 'dsh-cli-command-trees'
 
 /** Small host-only registry; command execution remains owned by dsh-commands. */
 export class TuiCommandTreeRuntime extends Service {

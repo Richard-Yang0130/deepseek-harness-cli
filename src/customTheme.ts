@@ -1,5 +1,5 @@
 /**
- * User-defined color themes for dsh-tui.
+ * User-defined color themes for dsh-cli.
  *
  * A theme is a JSON file in `~/.dsh-cli/themes/<name>.json`:
  *
@@ -122,7 +122,7 @@ export function isValidThemeColor(value: unknown): value is string {
 }
 
 function warn(message: string): void {
-  console.warn(`[dsh-tui] ${message}`)
+  console.warn(`[dsh-cli] ${message}`)
 }
 
 /**

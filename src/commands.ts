@@ -1,6 +1,6 @@
 /**
- * Local slash commands for the dsh-tui TUI. Claude Code's command system is
- * deeply wired into its engine; dsh-tui ships a small built-in set with the
+ * Local slash commands for the dsh-cli TUI. Claude Code's command system is
+ * deeply wired into its engine; dsh-cli ships a small built-in set with the
  * same `/name — description` suggestion chrome, and merges plugin-registered
  * commands (plan/goal/…) from the DSH command registry (`dsh-commands`) —
  * `runCommand` in the Chat screen dispatches either kind, with the registry
@@ -74,7 +74,7 @@ export const LOCAL_COMMANDS: LocalCommand[] = [
   // Session / environment
   { name: 'status', description: 'Show session status' },
   { name: 'cost', description: 'Show session token usage' },
-  { name: 'config', description: 'Show the dsh-tui configuration source' },
+  { name: 'config', description: 'Show the dsh-cli configuration source' },
   { name: 'doctor', description: 'Run environment checks' },
   { name: 'init', description: 'Create AGENTS.md in the working directory' },
   { name: 'agents', description: 'Show subagents of this session' },
@@ -96,11 +96,11 @@ export const LOCAL_COMMANDS: LocalCommand[] = [
   { name: 'hooks', description: 'Show hooks status' },
   { name: 'mcp', description: 'Show MCP status' },
   { name: 'memory', description: 'Show memory status' },
-  { name: 'update', description: 'Update dsh-tui and restart' },
+  { name: 'update', description: 'Update dsh-cli and restart' },
   // Built-in skills (CC's skill commands, driven through DSH skills)
   { name: 'audit', description: 'Run a comprehensive code audit on this project' },
   { name: 'bug', description: 'Capture a bug report' },
-  { name: 'practice', description: 'Practice programming with dsh-tui' },
+  { name: 'practice', description: 'Practice programming with dsh-cli' },
   { name: 'review', description: 'Run a comprehensive code review on this project' },
   { name: 'pr_comments', description: 'Review pull request comments' },
   { name: 'release-notes', description: 'Generate release notes' },
@@ -112,9 +112,9 @@ export const LOCAL_COMMANDS: LocalCommand[] = [
   { name: 'workspace', description: 'Resume, rename, or open a workspace' },
   // Help / exit
   { name: 'help', description: 'Show shortcuts and commands' },
-  { name: 'exit', description: 'Exit dsh-tui' },
-  { name: 'quit', description: 'Exit dsh-tui', tag: 'alias of /exit' },
-  { name: 'q', description: 'Exit dsh-tui', tag: 'alias of /exit' },
+  { name: 'exit', description: 'Exit dsh-cli' },
+  { name: 'quit', description: 'Exit dsh-cli', tag: 'alias of /exit' },
+  { name: 'q', description: 'Exit dsh-cli', tag: 'alias of /exit' },
 ]
 
 /**

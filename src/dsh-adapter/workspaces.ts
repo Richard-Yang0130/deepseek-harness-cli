@@ -100,7 +100,7 @@ declare module '@deepseek-ai/cordis' {
   }
 }
 
-export const name = 'dsh-tui-workspaces'
+export const name = 'dsh-cli-workspaces'
 
 /** Registry and local fallback shared by the TUI and workspace plugins. */
 export class TuiWorkspaceRuntime extends Service {
@@ -127,7 +127,7 @@ export class TuiWorkspaceRuntime extends Service {
       try {
         for (const target of await provider.list(signal)) targets.set(target.uri, this.withStoredTitle(target))
       } catch (error) {
-        this.ctx.logger.warn(`dsh-tui: workspace provider list failed: ${error instanceof Error ? error.message : String(error)}`)
+        this.ctx.logger.warn(`dsh-cli: workspace provider list failed: ${error instanceof Error ? error.message : String(error)}`)
       }
     }
 
@@ -194,7 +194,7 @@ export class TuiWorkspaceRuntime extends Service {
       try {
         target = provider.describe(cwd)
       } catch (error) {
-        this.ctx.logger.warn(`dsh-tui: workspace provider describe failed: ${error instanceof Error ? error.message : String(error)}`)
+        this.ctx.logger.warn(`dsh-cli: workspace provider describe failed: ${error instanceof Error ? error.message : String(error)}`)
         continue
       }
       if (target !== undefined) return this.withStoredTitle(target)
@@ -208,7 +208,7 @@ export class TuiWorkspaceRuntime extends Service {
       try {
         shell = await provider.commandShell?.(cwd)
       } catch (error) {
-        this.ctx.logger.warn(`dsh-tui: workspace provider commandShell failed: ${error instanceof Error ? error.message : String(error)}`)
+        this.ctx.logger.warn(`dsh-cli: workspace provider commandShell failed: ${error instanceof Error ? error.message : String(error)}`)
         continue
       }
       if (shell !== undefined) return shell

@@ -184,7 +184,7 @@ async function ensureImageDir(): Promise<string | null> {
   if (imageDir !== undefined) return imageDir
   let dir: string
   try {
-    dir = await mkdtemp(join(tmpdir(), 'dsh-tui-paste-'))
+    dir = await mkdtemp(join(tmpdir(), 'dsh-cli-paste-'))
   } catch {
     return null
   }
