@@ -32,6 +32,7 @@ import { isAbsolute, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { shellQuote } from '../lib/types/utils/shellQuote.js'
 import { applyLegacyEnv, detectLegacyEnv, RENAMED_ENV } from '../lib/types/utils/paths.js'
+import { migrateManagedProfile } from '../lib/types/utils/profileMigration.js'
 
 const here = fileURLToPath(new URL('.', import.meta.url))
 const ownVersion = JSON.parse(readFileSync(join(here, '..', 'package.json'), 'utf8')).version
@@ -107,6 +108,10 @@ const MSG = {
     en: (oldName, newName) => `[${BRAND}] note: env ${oldName} was renamed to ${newName}; the old name no longer takes effect.`,
     zh: (oldName, newName) => `[${BRAND}] 提示：环境变量 ${oldName} 已更名为 ${newName}，旧名不再生效。`,
   },
+  profileBackedUp: {
+    en: path => `[${BRAND}] Existing profile backed up before migration: ${path}`,
+    zh: path => `[${BRAND}] 已在迁移前备份现有 profile：${path}`,
+  },
 }
 const msg = key => MSG[key][lang]
 
@@ -137,6 +142,10 @@ if (probe.error || probe.status !== 0) {
 // --- 2. profile 自举与版本检查 -------------------------------------------------
 const dshHome = process.env.DSH_HOME || join(homedir(), '.dsh')
 const profileDir = join(dshHome, 'profiles', PROFILE)
+if (existsSync(profileDir)) {
+  const migration = await migrateManagedProfile({ profileDir })
+  if (migration.migrated) console.error(MSG.profileBackedUp[lang](migration.backupDir))
+}
 // 以已装包的 package.json 可读为准（而非目录存在）：安装中途失败留下的
 // 残骸目录会触发重新安装，而不是以坏 profile 直接启动。
 let installedVersion
