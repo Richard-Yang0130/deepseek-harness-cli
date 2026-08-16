@@ -11,6 +11,9 @@ import { Writable, PassThrough } from 'node:stream'
 import React from 'react'
 import { render } from '../lib/types/ui.js'
 import { PromptInput } from '../lib/types/components/PromptInput.js'
+import { setLang } from '../lib/types/i18n.js'
+
+setLang('zh')
 
 let failed = 0
 function check(name, ok, extra = '') {
