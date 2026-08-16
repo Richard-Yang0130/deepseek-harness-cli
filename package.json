@@ -74,7 +74,8 @@
     "verify:clipboard-image": "node --import tsx/esm scripts/verify-clipboard-image.ts",
     "verify:brand": "node scripts/verify-brand-identity.mjs",
     "verify:profile-migration": "node scripts/verify-profile-migration.mjs",
-    "verify:launcher-compat": "node scripts/verify-launcher-compat.mjs"
+    "verify:launcher-compat": "node scripts/verify-launcher-compat.mjs",
+    "verify:legacy-commands": "node scripts/verify-legacy-commands.mjs"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.1",

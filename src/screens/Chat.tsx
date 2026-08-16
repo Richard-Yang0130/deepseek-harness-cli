@@ -53,6 +53,8 @@ import type { SessionEvent } from '../dsh-adapter/types.js'
 import { LoadingState } from '../components/design-system/LoadingState.js'
 import { Pane } from '../components/design-system/Pane.js'
 import { loadHistory, type HistoryEntry } from '../history.js'
+import { parseCommandName } from '../commands.js'
+import { rewriteLegacyCommand } from '../legacyCommands.js'
 
 /** Shared empty snapshot for hosts whose channel has no event log. */
 const NO_EVENTS: readonly SessionEvent[] = []
@@ -499,6 +501,11 @@ export function Chat({
    * the command name (`/plan off` → ` off`).
    */
   const runCommand = (name: string, rawInput = ''): boolean => {
+    const rewritten = parseCommandName(rewriteLegacyCommand(`/${name}${rawInput}`))
+    if (rewritten !== undefined) {
+      name = rewritten.name
+      rawInput = rewritten.rawInput
+    }
     switch (name) {
       case 'activity': {
         // Ported from the pi working-activity extension: bare `/activity`
