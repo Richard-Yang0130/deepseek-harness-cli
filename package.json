@@ -73,7 +73,8 @@
     "verify:package": "npm pack --dry-run --json --ignore-scripts | node scripts/verify-package.mjs",
     "verify:clipboard-image": "node --import tsx/esm scripts/verify-clipboard-image.ts",
     "verify:brand": "node scripts/verify-brand-identity.mjs",
-    "verify:profile-migration": "node scripts/verify-profile-migration.mjs"
+    "verify:profile-migration": "node scripts/verify-profile-migration.mjs",
+    "verify:launcher-compat": "node scripts/verify-launcher-compat.mjs"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.1",

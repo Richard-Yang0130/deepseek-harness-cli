@@ -19,7 +19,7 @@
  * `--resume` 由本启动器拦截：读取 TUI 保留的 ~/.dsh-cli/resume.txt
  * （旧路径 ~/.dsh-cc/resume.txt 兜底，直到旧版 TUI 退场——见
  * src/sessionHistory.ts 的启动器契约，issue #120），以
- * DSH_CLI_RESUME_SESSION（并兼容写 DSH_CC_RESUME_SESSION）环境变量喂回，
+ * DSH_CLI_RESUME_SESSION 环境变量喂回，旧环境变量仅作读取兼容，
  * 该 flag 本身不再传给 dsh。
  *
  * 面向用户的消息走下方 MSG 双语表：与 TUI 的语言契约一致——
@@ -183,14 +183,13 @@ if (installedVersion === undefined) {
 
 // --- 3. --resume 拦截 ---------------------------------------------------------
 // 换名过渡（issue #120）：全局 bin 与 profile 内 TUI 包版本可能错位，所以
-// env 双写（新旧名都设），文件读取新路径优先、旧路径兜底。
+// 只写新 env，文件读取新路径优先、旧路径兜底。
 // 支持的形态（对齐 issue #53 的诉求）：
 //   --resume <id> / --resume=<id>   恢复指定会话
 //   --resume / -c / --continue      恢复最近一次会话（读 resume.txt）
 // 其余位置参数原样透传给 dsh CLI，由插件经 ctx.cmdlineArgs 读取（初始 prompt）。
 const setResumeEnv = sessionId => {
   process.env.DSH_CLI_RESUME_SESSION = sessionId
-  process.env.DSH_CC_RESUME_SESSION = sessionId
 }
 const readLastResumeTarget = () => {
   for (const dir of ['.dsh-cli', '.dsh-tui', '.dsh-cc']) {
