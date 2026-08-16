@@ -1,5 +1,10 @@
 .worktrees/
 node_modules/
 coverage/
+package-lock.json
+/lib/
+*.log
+*.tsbuildinfo
 *.tgz
 .DS_Store
+AGENTS.md
