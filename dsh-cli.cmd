@@ -1,14 +1,14 @@
 @echo off
-rem dsh-tui: launch dsh-TUI through the official dsh CLI profile boot.
-rem Equivalent to: dsh --profile dsh-tui <args>
+rem dsh-cli: launch DeepSeek Harness CLI through the official dsh CLI profile boot.
+rem Equivalent to: dsh --profile dsh-cli <args>
 rem   --resume: read ~/.dsh-tui/resume.txt (legacy ~/.dsh-cc/resume.txt as
 rem             fallback) and feed it to the TUI as DSH_TUI_RESUME_SESSION —
 rem             dual-written as DSH_CC_RESUME_SESSION for pre-rename TUI
 rem             builds (the TUI writes the chosen session id there on
 rem             /resume; see src/sessionHistory.ts, issue #120).
 rem Prereq: dsh CLI on PATH (npm install -g @deepseek-ai/dsh). The profile
-rem         is created by `dsh plugin --profile dsh-tui add @deepseek-harness-tui/dsh-tui`
-rem         under $DSH_HOME/profiles/dsh-tui (default ~/.dsh), so this
+rem         is created by `dsh plugin --profile dsh-cli add @deepseekdeepseek-harness-cli`
+rem         under $DSH_HOME/profiles/dsh-cli (default ~/.dsh), so this
 rem         launcher must NOT pin DSH_HOME.
 rem NODE_ENV defaults to production: the React renderer's development build
 rem records unbounded performance.measure() entries and OOMs long sessions.
@@ -21,7 +21,7 @@ cd /d "%WORKSPACE%"
 
 where dsh >nul 2>nul
 if errorlevel 1 (
-  echo [dsh-tui] 未找到 dsh CLI。请先安装：npm install -g @deepseek-ai/dsh 1>&2
+  echo [dsh-cli] 未找到 dsh CLI。请先安装：npm install -g @deepseek-ai/dsh 1>&2
   exit /b 1
 )
 
@@ -42,5 +42,5 @@ shift
 goto :parse
 
 :run
-@dsh --profile dsh-tui %ARGS%
+@dsh --profile dsh-cli %ARGS%
 endlocal

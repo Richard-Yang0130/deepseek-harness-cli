@@ -1,22 +1,22 @@
 {
-  "name": "@deepseek-harness-tui/dsh-tui",
+  "name": "deepseek-harness-cli",
   "version": "0.7.2",
-  "description": "Claude Code style interactive TUI front door for DeepSeek Harness agents, built on the ported Ink core.",
+  "description": "A full-featured DeepSeek Harness terminal interface.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ccch1mneyyy/dsh-TUI.git"
+    "url": "git+https://github.com/Richard-Yang0130/deepseek-harness-cli.git"
   },
   "bugs": {
-    "url": "https://github.com/ccch1mneyyy/dsh-TUI/issues"
+    "url": "https://github.com/Richard-Yang0130/deepseek-harness-cli/issues"
   },
-  "homepage": "https://github.com/ccch1mneyyy/dsh-TUI#readme",
+  "homepage": "https://github.com/Richard-Yang0130/deepseek-harness-cli#readme",
   "publishConfig": {
     "access": "public"
   },
   "type": "module",
   "bin": {
-    "dsh-tui": "./bin/dsh-tui.js"
+    "dsh-cli": "./bin/dsh-cli.js"
   },
   "main": "lib/types/index.js",
   "types": "lib/types/index.d.ts",
@@ -71,7 +71,8 @@
     "verify:minimal-preset-tools": "node scripts/verify-minimal-preset-tools.mjs",
     "verify:liangshen-bootstrap": "node scripts/verify-liangshen-bootstrap.mjs",
     "verify:package": "npm pack --dry-run --json --ignore-scripts | node scripts/verify-package.mjs",
-    "verify:clipboard-image": "node --import tsx/esm scripts/verify-clipboard-image.ts"
+    "verify:clipboard-image": "node --import tsx/esm scripts/verify-clipboard-image.ts",
+    "verify:brand": "node scripts/verify-brand-identity.mjs"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.1",

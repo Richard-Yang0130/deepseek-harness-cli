@@ -1,20 +1,20 @@
 #!/usr/bin/env node
 /**
- * dsh-tui — dsh-tui profile 的一键直达启动器。
+ * dsh-cli — dsh-cli profile 的一键直达启动器。
  *
- * 全局安装 @deepseek-harness-tui/dsh-tui 后获得 `dsh-tui` 命令，免去手工
- * 输入 `dsh --profile dsh-tui`：
+ * 全局安装 deepseek-harness-cli 后获得 `dsh-cli` 命令，免去手工
+ * 输入 `dsh --profile dsh-cli`：
  *
  *   1. 检测 dsh CLI（缺失时提示安装 @deepseek-ai/dsh）；
- *   2. 检测 $DSH_HOME/profiles/dsh-tui 是否已初始化，未初始化则自动执行
- *      `dsh plugin --profile dsh-tui add @deepseek-harness-tui/dsh-tui@<本包版本>`
+ *   2. 检测 $DSH_HOME/profiles/dsh-cli 是否已初始化，未初始化则自动执行
+ *      `dsh plugin --profile dsh-cli add deepseek-harness-cli@<本包版本>`
  *      自举——版本号与本包对齐，避免 pnpm store 缓存带来的旧版漂移；
  *   3. 已初始化但版本与本包不一致时按方向处理（issue #183）：profile
  *      更新（前向错位）打印一行提示后继续启动（TUI 内 /update 或重新
  *      add）；profile 次版本更旧（反向错位）拒绝启动并给出对齐命令——
  *      该方向 dsh CLI 会把启动器的 bundle patch 套到 profile 旧包上，
  *      启动必然以模块解析错误崩溃；
- *   4. 透传全部参数启动 `dsh --profile dsh-tui`。
+ *   4. 透传全部参数启动 `dsh --profile dsh-cli`。
  *
  * `--resume` 由本启动器拦截：读取 TUI 保留的 ~/.dsh-tui/resume.txt
  * （旧路径 ~/.dsh-cc/resume.txt 兜底，直到旧版 TUI 退场——见
@@ -35,8 +35,9 @@ import { detectLegacyEnv, RENAMED_ENV } from '../lib/types/utils/paths.js'
 
 const here = fileURLToPath(new URL('.', import.meta.url))
 const ownVersion = JSON.parse(readFileSync(join(here, '..', 'package.json'), 'utf8')).version
-const PACKAGE = '@deepseek-harness-tui/dsh-tui'
-const PROFILE = 'dsh-tui'
+const PACKAGE = 'deepseek-harness-cli'
+const PROFILE = 'dsh-cli'
+const BRAND = 'dsh-cli'
 
 // --- 双语消息表（启动器跑在 TUI boot 之前，无法复用 src/i18n.ts）-------------
 // 与 TUI 一致：DSH_TUI_LANG 显式指定才生效，否则默认中文；旧名 CC_TUI_LANG
@@ -44,28 +45,28 @@ const PROFILE = 'dsh-tui'
 const lang = (process.env.DSH_TUI_LANG ?? process.env.CC_TUI_LANG) === 'en' ? 'en' : 'zh'
 const MSG = {
   noDsh: {
-    en: '[dsh-tui] dsh CLI not found. Install the official client first:\n  npm install -g @deepseek-ai/dsh',
-    zh: '[dsh-tui] 未检测到 dsh CLI。请先安装官方客户端：\n  npm install -g @deepseek-ai/dsh',
+    en: `[${BRAND}] dsh CLI not found. Install the official client first:\n  npm install -g @deepseek-ai/dsh`,
+    zh: `[${BRAND}] 未检测到 dsh CLI。请先安装官方客户端：\n  npm install -g @deepseek-ai/dsh`,
   },
   noPnpm: {
-    en: '[dsh-tui] The first-time setup needs pnpm (dsh plugin delegates installs to it):\n  npm install -g pnpm   (or via corepack: corepack enable pnpm)',
-    zh: '[dsh-tui] 首次安装需要 pnpm（dsh plugin 会把安装转发给它）：\n  npm install -g pnpm   （或启用 corepack：corepack enable pnpm）',
+    en: `[${BRAND}] The first-time setup needs pnpm (dsh plugin delegates installs to it):\n  npm install -g pnpm   (or via corepack: corepack enable pnpm)`,
+    zh: `[${BRAND}] 首次安装需要 pnpm（dsh plugin 会把安装转发给它）：\n  npm install -g pnpm   （或启用 corepack：corepack enable pnpm）`,
   },
   bootstrapStart: {
-    en: `[dsh-tui] First run — initializing the ${PROFILE} profile (${PACKAGE}@${ownVersion})…`,
-    zh: `[dsh-tui] 首次运行，正在初始化 ${PROFILE} profile（${PACKAGE}@${ownVersion}）…`,
+    en: `[${BRAND}] First run — initializing the ${PROFILE} profile (${PACKAGE}@${ownVersion})…`,
+    zh: `[${BRAND}] 首次运行，正在初始化 ${PROFILE} profile（${PACKAGE}@${ownVersion}）…`,
   },
   installFailed: {
-    en: `[dsh-tui] Plugin install failed. Retry manually later:\n  dsh plugin --profile ${PROFILE} add ${PACKAGE}@${ownVersion}`,
-    zh: `[dsh-tui] 插件安装失败。可稍后手工重试：\n  dsh plugin --profile ${PROFILE} add ${PACKAGE}@${ownVersion}`,
+    en: `[${BRAND}] Plugin install failed. Retry manually later:\n  dsh plugin --profile ${PROFILE} add ${PACKAGE}@${ownVersion}`,
+    zh: `[${BRAND}] 插件安装失败。可稍后手工重试：\n  dsh plugin --profile ${PROFILE} add ${PACKAGE}@${ownVersion}`,
   },
   versionMismatch: {
     en: (installed, own) =>
-      `[dsh-tui] note: the profile is running v${installed} but this launcher is v${own}.\n` +
+      `[${BRAND}] note: the profile is running v${installed} but this launcher is v${own}.\n` +
       `  To update the profile: run /update inside the TUI, or:\n` +
       `  dsh plugin --profile ${PROFILE} add ${PACKAGE}@latest`,
     zh: (installed, own) =>
-      `[dsh-tui] 提示：profile 内运行的是 v${installed}，而启动器是 v${own}。\n` +
+      `[${BRAND}] 提示：profile 内运行的是 v${installed}，而启动器是 v${own}。\n` +
       `  更新 profile：在 TUI 内执行 /update，或运行：\n` +
       `  dsh plugin --profile ${PROFILE} add ${PACKAGE}@latest`,
   },
@@ -79,30 +80,30 @@ const MSG = {
   // working local-workspace fallback since 0.7.2 — soft note below.)
   profileOlderThanLauncher: {
     en: (installed, own) =>
-      `[dsh-tui] cannot start: the profile runs v${installed} but this launcher is v${own}.\n` +
+      `[${BRAND}] cannot start: the profile runs v${installed} but this launcher is v${own}.\n` +
       `  The launcher's bundle patch would be applied to the profile's older package,\n` +
       `  which does not export everything the patch references — boot would crash.\n` +
       `  Align the profile with the launcher:\n` +
       `  dsh plugin --profile ${PROFILE} add ${PACKAGE}@${own}\n` +
       `  (or update everything to the latest release: dsh plugin --profile ${PROFILE} add ${PACKAGE}@latest)`,
     zh: (installed, own) =>
-      `[dsh-tui] 无法启动：profile 内运行的是 v${installed}，而启动器是 v${own}。\n` +
+      `[${BRAND}] 无法启动：profile 内运行的是 v${installed}，而启动器是 v${own}。\n` +
       `  启动器的 bundle patch 会套用到 profile 里的旧版包上，其中缺少 patch 引用\n` +
       `  的子路径导出——启动会以模块解析错误崩溃。请让 profile 与启动器对齐：\n` +
       `  dsh plugin --profile ${PROFILE} add ${PACKAGE}@${own}\n` +
       `  （或全部升到最新：dsh plugin --profile ${PROFILE} add ${PACKAGE}@latest）`,
   },
   launchFailed: {
-    en: err => `[dsh-tui] Failed to launch: ${err.message}`,
-    zh: err => `[dsh-tui] 启动失败：${err.message}`,
+    en: err => `[${BRAND}] Failed to launch: ${err.message}`,
+    zh: err => `[${BRAND}] 启动失败：${err.message}`,
   },
   profileExited: {
-    en: code => `[dsh-tui] dsh profile exited with code ${code}. Run it directly for diagnostics:\n  dsh --profile ${PROFILE}`,
-    zh: code => `[dsh-tui] dsh profile 已退出（退出码 ${code}）。可直接运行以下命令查看诊断：\n  dsh --profile ${PROFILE}`,
+    en: code => `[${BRAND}] dsh profile exited with code ${code}. Run it directly for diagnostics:\n  dsh --profile ${PROFILE}`,
+    zh: code => `[${BRAND}] dsh profile 已退出（退出码 ${code}）。可直接运行以下命令查看诊断：\n  dsh --profile ${PROFILE}`,
   },
   legacyEnv: {
-    en: (oldName, newName) => `[dsh-tui] note: env ${oldName} was renamed to ${newName}; the old name no longer takes effect.`,
-    zh: (oldName, newName) => `[dsh-tui] 提示：环境变量 ${oldName} 已更名为 ${newName}，旧名不再生效。`,
+    en: (oldName, newName) => `[${BRAND}] note: env ${oldName} was renamed to ${newName}; the old name no longer takes effect.`,
+    zh: (oldName, newName) => `[${BRAND}] 提示：环境变量 ${oldName} 已更名为 ${newName}，旧名不再生效。`,
   },
 }
 const msg = key => MSG[key][lang]
@@ -139,7 +140,7 @@ const profileDir = join(dshHome, 'profiles', PROFILE)
 let installedVersion
 try {
   installedVersion = JSON.parse(
-    readFileSync(join(profileDir, 'node_modules', '@deepseek-harness-tui', 'dsh-tui', 'package.json'), 'utf8'),
+    readFileSync(join(profileDir, 'node_modules', PACKAGE, 'package.json'), 'utf8'),
   ).version
 } catch {
   installedVersion = undefined
