@@ -32,8 +32,8 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { zstdCompressSync } from 'node:zlib'
 
-const root = mkdtempSync(join(tmpdir(), 'dsh-tui-rename-mru-'))
-const home = mkdtempSync(join(tmpdir(), 'dsh-tui-rename-mru-home-'))
+const root = mkdtempSync(join(tmpdir(), 'dsh-cli-rename-mru-'))
+const home = mkdtempSync(join(tmpdir(), 'dsh-cli-rename-mru-home-'))
 process.env.DSH_CLI_SESSION_ROOT = root
 // sessionHistory resolves os.homedir() at module load — HOME on POSIX,
 // USERPROFILE on Windows. Set BOTH so a manual run can never write the

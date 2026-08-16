@@ -5,7 +5,7 @@ import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
-const testHome = mkdtempSync(join(tmpdir(), 'dsh-tui-activity-home-'))
+const testHome = mkdtempSync(join(tmpdir(), 'dsh-cli-activity-home-'))
 process.env.HOME = testHome
 process.env.USERPROFILE = testHome
 const { createChannel } = await import('../lib/types/dsh-adapter/channel.js')

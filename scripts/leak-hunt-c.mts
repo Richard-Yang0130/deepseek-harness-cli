@@ -14,7 +14,7 @@ import { EventEmitter } from 'node:events'
 import v8 from 'node:v8'
 import React from 'react'
 
-process.env.DSH_HOME = resolve(homedir(), '.dsh-cc')
+process.env.DSH_HOME = resolve(homedir(), '.dsh-cli')
 const workspace = resolve(import.meta.dirname, '../../../..')
 const dshHome = process.env.DSH_HOME
 const ROUNDS = Number(process.argv[2] ?? 10)
@@ -51,13 +51,13 @@ const patches = [
   ...loadOverlayPatches('dsh', resolve(workspace, 'packages/bundle/base/cordis.patch.yml')),
   ...loadOverlayPatches('dsh', resolve(workspace, 'packages/activity/working-activity/cordis.patch.yml')),
   ...loadOverlayPatches('dsh', resolve(workspace, 'packages/ui/cc-tui/cordis.patch.yml')),
-  { id: 'dsh-tui', disabled: true },
+  { id: 'dsh-cli', disabled: true },
 ]
 healProfilesModuleFallback(resolve(workspace, 'apps/cli/package.json'))
-writeFileSync(join(dshHome, 'profiles/dsh-tui/cordis.yml'), '[]\n')
+writeFileSync(join(dshHome, 'profiles/dsh-cli/cordis.yml'), '[]\n')
 
 console.error(`[leakC] rounds=${ROUNDS} booting...`)
-const ctx = await boot('dsh', join(dshHome, 'profiles/dsh-tui/cordis.yml'), patches, async () => {})
+const ctx = await boot('dsh', join(dshHome, 'profiles/dsh-cli/cordis.yml'), patches, async () => {})
 const agents = ctx.get('agents')
 
 const handle = await agents.create({

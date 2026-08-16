@@ -4,7 +4,7 @@
  *
  * dsh CLI 从「安装锚点优先命中的拷贝」（通常是全局启动器）读 bundle 的
  * cordis.patch.yml，却从 profile 拷贝装载插件模块；两份拷贝版本错位时
- * 旧 patch 没有 dsh-tui-workspaces 行。本脚本锁定降级契约，防止回退：
+ * 旧 patch 没有 dsh-cli-workspaces 行。本脚本锁定降级契约，防止回退：
  *
  *   - 代码层 inject 不得再含 tuiWorkspaces（硬注入 = 启动死锁）
  *   - plugin/channel 两处消费必须带 createLocalWorkspaceRuntime 兜底
@@ -55,17 +55,17 @@ assert.match(
 const patch = read('cordis.patch.yml')
 assert.match(
   patch,
-  /- id: dsh-tui-workspaces\n\s+name: '@deepseek-harness-tui\/dsh-tui\/workspaces'/,
+  /- id: dsh-cli-workspaces\n\s+name: 'deepseek-harness-cli\/workspaces'/,
   'bundle patch still mounts the workspaces row',
 )
 assert.match(
   patch,
-  /- id: dsh-tui\n\s+name: '@deepseek-harness-tui\/dsh-tui'\n[\s\S]{0,240}inject: \[[^\]]*\btuiWorkspaces\b[^\]]*\]/,
+  /- id: dsh-cli\n\s+name: 'deepseek-harness-cli'\n[\s\S]{0,240}inject: \[[^\]]*\btuiWorkspaces\b[^\]]*\]/,
   'row-level inject keeps tuiWorkspaces as the mount-ordering guarantee',
 )
 assert.ok(
-  patch.indexOf('- id: dsh-tui-workspaces') < patch.indexOf("- id: dsh-tui\n"),
-  'the workspaces row precedes the dsh-tui row',
+  patch.indexOf('- id: dsh-cli-workspaces') < patch.indexOf("- id: dsh-cli\n"),
+  'the workspaces row precedes the dsh-cli row',
 )
 
 // 本地兜底运行时行为：覆盖启动 workspace 目标解析的三类输入。

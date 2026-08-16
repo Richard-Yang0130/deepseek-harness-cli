@@ -31,7 +31,7 @@ function check(name, ok, extra = '') {
 }
 
 // --- resolveSessionCwd -----------------------------------------------------
-const fixture = mkdtempSync(join(tmpdir(), 'dsh-tui-cwd-'))
+const fixture = mkdtempSync(join(tmpdir(), 'dsh-cli-cwd-'))
 try {
   // Plain clone layout: repo/.git is a directory, launch from repo/sub/dir.
   const repo = join(fixture, 'repo')
@@ -114,7 +114,7 @@ check(
 // user into every project under home either).
 const savedHome2 = process.env.HOME
 const savedUserProfile2 = process.env.USERPROFILE
-const homeBoundary = mkdtempSync(join(tmpdir(), 'dsh-tui-boundary-'))
+const homeBoundary = mkdtempSync(join(tmpdir(), 'dsh-cli-boundary-'))
 try {
   process.env.HOME = homeBoundary
   process.env.USERPROFILE = homeBoundary
@@ -163,7 +163,7 @@ check('deeper UNC path keeps the descendant rule', sessionCwdMatches('\\\\server
 // falls back to the launch directory, and the climb stops at $HOME.
 const savedHome = process.env.HOME
 const savedUserProfile = process.env.USERPROFILE
-const homeFixture = mkdtempSync(join(tmpdir(), 'dsh-tui-home-'))
+const homeFixture = mkdtempSync(join(tmpdir(), 'dsh-cli-home-'))
 try {
   process.env.HOME = homeFixture
   process.env.USERPROFILE = homeFixture

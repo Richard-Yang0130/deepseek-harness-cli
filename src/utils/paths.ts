@@ -1,5 +1,5 @@
 /**
- * Data-directory paths for the dsh-tui profile, renamed from `~/.dsh-cc` to
+ * Data-directory paths for the dsh-cli profile, renamed from `~/.dsh-cc` to
  * `~/.dsh-cli` (issue #120). On first launch the legacy directory is COPIED
  * (not moved) to the new location; afterwards only the new directory is read
  * and written. The one exception is `resume.txt`, which sessionHistory

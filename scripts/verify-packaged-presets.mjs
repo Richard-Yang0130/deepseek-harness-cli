@@ -8,7 +8,7 @@ import { ensurePackagedPresets, packagedPresetRoot } from '../lib/types/dsh-adap
 
 const workspace = new URL('..', import.meta.url)
 const packagedRoot = join(fileURLToPath(workspace), 'presets')
-const temporary = await mkdtemp(join(tmpdir(), 'dsh-tui-presets-'))
+const temporary = await mkdtemp(join(tmpdir(), 'dsh-cli-presets-'))
 
 try {
   assert.equal(packagedPresetRoot(), packagedRoot)

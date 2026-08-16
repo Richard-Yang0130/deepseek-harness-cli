@@ -81,7 +81,7 @@ assert.equal(
 // Exercise the real four-plugin stack used by the profile patch. The Session
 // is live (the same state immediately after agents.create), so attachSession
 // validates its immutable header and persists the Workspace account.
-const actualRoot = mkdtempSync(join(tmpdir(), 'dsh-tui-workspace-'))
+const actualRoot = mkdtempSync(join(tmpdir(), 'dsh-cli-workspace-'))
 const actualCwd = join(actualRoot, 'project')
 mkdirSync(actualCwd)
 const actualHeader = {
@@ -138,7 +138,7 @@ for (const id of ['storage', 'storage-json', 'storage-domain', 'workspace']) {
 assert.match(patch, /root: !!js dshHomePath\('storages'\)/)
 assert.match(
   patch,
-  /- id: dsh-tui\n\s+name: '@deepseek-harness-tui\/dsh-tui'\n[\s\S]{0,240}inject: \[[^\]]*\bworkspaceRegistry\b[^\]]*\]/,
+  /- id: dsh-cli\n\s+name: 'deepseek-harness-cli'\n[\s\S]{0,240}inject: \[[^\]]*\bworkspaceRegistry\b[^\]]*\]/,
   'profile waits for WorkspaceRegistry before the TUI creates its startup session',
 )
 

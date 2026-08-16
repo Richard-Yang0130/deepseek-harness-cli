@@ -1,6 +1,6 @@
 ---
 name: practice
-description: Use when the user asks to practice programming with dsh-tui, or wants to level up a specific skill through guided exercises.
+description: Use when the user asks to practice programming with dsh-cli, or wants to level up a specific skill through guided exercises.
 ---
 
 # Programming Practice

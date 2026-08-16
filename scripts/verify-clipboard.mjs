@@ -127,7 +127,7 @@ check(
 )
 check(
   'formatClipboardInsert turns an exported image into an @ reference',
-  formatClipboardInsert({ kind: 'image', path: '/tmp/dsh-tui-paste-1.png' }) === '@/tmp/dsh-tui-paste-1.png',
+  formatClipboardInsert({ kind: 'image', path: '/tmp/dsh-cli-paste-1.png' }) === '@/tmp/dsh-cli-paste-1.png',
 )
 check(
   'formatClipboardInsert normalizes text line endings',

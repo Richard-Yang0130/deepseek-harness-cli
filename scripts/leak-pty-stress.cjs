@@ -1,5 +1,5 @@
 /**
- * leak-pty-stress.cjs — spawn the REAL dsh-cc in a PTY, auto-send realistic
+ * leak-pty-stress.cjs — spawn the REAL dsh-cli in a PTY, auto-send realistic
  * tool-heavy prompts, watch child RSS from outside until it blows or stabilizes.
  *
  * Usage: node packages/ui/cc-tui/scripts/leak-pty-stress.cjs [rounds] [intervalSec]
@@ -47,7 +47,7 @@ async function main() {
   const snapDir = path.join(os.homedir(), '.dsh-cli').split('\\').join('/')
   const env = {
     ...process.env,
-    DSH_CC_HEAP_WATCH: '1',
+    DSH_CLI_HEAP_WATCH: '1',
     NODE_OPTIONS: `--heapsnapshot-near-heap-limit=2 --diagnostic-dir=${snapDir}`,
   }
   const proc = spawn('cmd.exe', ['/c', `node --import tsx/esm ${runScript}`], {
@@ -66,10 +66,10 @@ async function main() {
   const t0 = Date.now()
   await new Promise((r) => {
     const iv = setInterval(() => {
-      if (output.includes('❯') || output.includes('dsh-TUI') || Date.now() - t0 > 90000) { clearInterval(iv); r() }
+      if (output.includes('❯') || output.includes('DSH CLI') || Date.now() - t0 > 90000) { clearInterval(iv); r() }
     }, 500)
   })
-  const bootOk = output.includes('❯') || output.includes('dsh-TUI')
+  const bootOk = output.includes('❯') || output.includes('DSH CLI')
   console.error(`[stress] boot ${bootOk ? 'OK' : 'TIMEOUT-BAILOUT'} after ${((Date.now() - t0) / 1000).toFixed(0)}s, output=${output.length}B`)
   if (!bootOk) {
     console.error('[stress] TUI did not render — aborting (check heap-watch.log / diagnostic)')

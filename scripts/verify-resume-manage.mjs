@@ -28,7 +28,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { zstdCompressSync, zstdDecompressSync } from 'node:zlib'
 
-const root = mkdtempSync(join(tmpdir(), 'dsh-tui-resume-manage-'))
+const root = mkdtempSync(join(tmpdir(), 'dsh-cli-resume-manage-'))
 process.env.DSH_CLI_SESSION_ROOT = root
 
 // Import AFTER the env override: the module resolves roots at call time,
@@ -107,7 +107,7 @@ assert.equal(appendSessionTitle(unknown, 'ghost'), 'unavailable', 'unknown renam
 // ── Path traversal: the id reaches path.join() and deleteSessionLog does a
 // recursive rm on the resolved parent — hostile ids must be rejected as
 // 'unavailable' before any filesystem effect. ────────────────────────────
-const victim = mkdtempSync(join(tmpdir(), 'dsh-tui-victim-'))
+const victim = mkdtempSync(join(tmpdir(), 'dsh-cli-victim-'))
 writeFileSync(join(victim, 'keep.txt'), 'do not delete')
 for (const hostile of ['../../' + victim.split('/').pop(), '..', '.', 'a/b', 'a\\b', '', 'with space', 'id.json', '.hidden']) {
   assert.equal(deleteSessionLog(hostile), 'unavailable', `delete rejects hostile id ${JSON.stringify(hostile)}`)
@@ -120,7 +120,7 @@ rmSync(victim, { recursive: true, force: true })
 // ── Symlinked workspace: a whitelisted id under <root>/<ws symlink> points
 // OUTSIDE the root. Lexical resolve() passes; only realpath containment
 // stops the recursive rm from deleting outside data. ─────────────────────
-const outside = mkdtempSync(join(tmpdir(), 'dsh-tui-outside-'))
+const outside = mkdtempSync(join(tmpdir(), 'dsh-cli-outside-'))
 const linkedId = 'deadbeefcafe'
 const linkedDir = join(outside, linkedId)
 mkdirSync(linkedDir, { recursive: true })

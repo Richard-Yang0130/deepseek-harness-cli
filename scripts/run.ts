@@ -1,6 +1,6 @@
 /**
- * Boot the dsh-tui surface directly: load the three bundle patch layers from
- * workspace source (dsh-base → dsh-working-activity → dsh-tui), compose them,
+ * Boot the dsh-cli surface directly: load the three bundle patch layers from
+ * workspace source (dsh-base → dsh-working-activity → dsh-cli), compose them,
  * and hand them to boot() with a root config anchored in the healed
  * module-fallback directory. This bypasses the profile directory system
  * (loadProfile / resolveBundleDir / profile package.json) entirely — those
@@ -14,9 +14,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 
 // Pin DSH_HOME before any import that reads it. The cmd launcher's
 // `set DSH_HOME=...` does not reliably survive PowerShell → cmd → tsx.cmd.
-if (!process.env.DSH_HOME?.endsWith('.dsh-cc')) {
-  process.env.DSH_HOME = resolve(homedir(), '.dsh-cc')
-}
+process.env.DSH_HOME ??= resolve(homedir(), '.dsh')
 
 // Force React's production build BEFORE boot() pulls in the plugin tree.
 // react-reconciler's CJS entry picks development vs production on first
@@ -39,23 +37,24 @@ import {
 import type { Context } from '@deepseek-ai/cordis'
 
 const here = fileURLToPath(new URL('.', import.meta.url))
-// Default assumes an in-monorepo checkout (harness/packages/ui/dsh-tui);
-// standalone clones set DSH_CLI_DEV_WORKSPACE to the harness repo root.
+// Point DSH_CLI_DEV_WORKSPACE at a DeepSeek Harness source checkout. The
+// terminal package's own patch is always read from this repository.
 const workspace = process.env.DSH_CLI_DEV_WORKSPACE ?? resolve(here, '../../../..')
+const tuiPatchPath = resolve(here, '../cordis.patch.yml')
 const dshHome = process.env.DSH_HOME
-const profileDir = join(dshHome, 'profiles', 'dsh-tui')
+const profileDir = join(dshHome, 'profiles', 'dsh-cli')
 const rootConfig = join(profileDir, 'cordis.yml')
 const userPatch = join(profileDir, 'cordis.patch.yml')
 const homePatch = join(dshHome, 'cordis.patch.yml')
 const diagFile = join(dshHome, 'last-boot-diagnostic.txt')
 
 // --- Heap watchtower (leak forensics) ---------------------------------------
-// dsh-cc OOM'd twice in real long sessions (~4GB in 19-42min). The render
+// Earlier builds OOM'd twice in real long sessions (~4GB in 19-42min). The render
 // caches are bounded now, but something else still grows. This sampler logs
-// heapUsed/rss every 30s to ~/.dsh-cc/heap-watch.log and writes a full
+// heapUsed/rss every 15s to $DSH_HOME/heap-watch.log and writes a full
 // heapsnapshot when crossing 3GB, so the next crash brings its own evidence.
-// Disable with DSH_CC_HEAP_WATCH=0.
-if (process.env.DSH_CC_HEAP_WATCH !== '0') {
+// Disable with DSH_CLI_HEAP_WATCH=0.
+if (process.env.DSH_CLI_HEAP_WATCH !== '0') {
   const { appendFileSync, mkdirSync } = await import('node:fs')
   const v8 = await import('node:v8')
   const logFile = join(dshHome, 'heap-watch.log')
@@ -110,7 +109,7 @@ if (!process.env.DEEPSEEK_API_KEY) {
  */
 function writePreBootDiagnostic(): void {
   const lines: string[] = []
-  lines.push(`dsh-tui boot diagnostic — ${new Date().toISOString()}`)
+  lines.push(`dsh-cli boot diagnostic — ${new Date().toISOString()}`)
   lines.push(`node: ${process.version}  platform: ${process.platform}/${process.arch}`)
   lines.push(`workspace: ${workspace}`)
   lines.push(`DSH_HOME: ${dshHome}`)
@@ -120,12 +119,12 @@ function writePreBootDiagnostic(): void {
   lines.push(`DEEPSEEK_API_KEY: ${process.env.DEEPSEEK_API_KEY ? 'set (' + process.env.DEEPSEEK_API_KEY.length + ' chars)' : '(unset)'}`)
   lines.push(`stdout.isTTY: ${process.stdout.isTTY}`)
   lines.push('--- bundle patch sources ---')
-  for (const label of ['base', 'working-activity', 'dsh-tui']) {
+  for (const label of ['base', 'working-activity', 'dsh-cli']) {
     const p = label === 'base'
       ? resolve(workspace, 'packages/bundle/base/cordis.patch.yml')
       : label === 'working-activity'
         ? resolve(workspace, 'packages/activity/working-activity/cordis.patch.yml')
-        : resolve(workspace, 'packages/ui/dsh-tui/cordis.patch.yml')
+        : tuiPatchPath
     lines.push(`${label}: ${existsSync(p) ? 'exists (' + statSync(p).size + ' bytes)' : 'MISSING'}`)
   }
   lines.push('--- module fallback ---')
@@ -149,7 +148,7 @@ writePreBootDiagnostic()
 
 // External plugin bundles live under $DSH_HOME/plugins/<name>/.
 // Each has a cordis.patch.yml that the Loader applies as an additional
-// layer. They are loaded between working-activity and dsh-tui so dsh-tui's
+// layer. They are loaded between working-activity and dsh-cli so dsh-cli's
 // overrides (persona, llm config) take precedence.
 const pluginsDir = join(dshHome, 'plugins')
 const externalPatchFiles: string[] = []
@@ -187,22 +186,22 @@ const basePatchPath = resolve(workspace, 'packages/bundle/base/cordis.patch.yml'
 const basePatches: PatchOptions[] = loadOverlayPatches('dsh', basePatchPath)
 
 // 2. dsh-working-activity: inserts the working-activity row — SKIPPED when
-// dsh-tui's own patch already carries the row (current cordis.patch.yml
+// dsh-cli's own patch already carries the row (current cordis.patch.yml
 // re-exports ./working-activity itself; loading both layers is a duplicate
 // loader entry id). Kept for older patch stacks.
 const activityPatchPath = resolve(workspace, 'packages/activity/working-activity/cordis.patch.yml')
-const tuiPatchText = readFileSync(resolve(workspace, 'packages/ui/dsh-tui/cordis.patch.yml'), 'utf8')
+const tuiPatchText = readFileSync(tuiPatchPath, 'utf8')
 const activityPatches: PatchOptions[] = tuiPatchText.includes('id: working-activity')
   ? []
   : loadOverlayPatches('dsh', activityPatchPath)
 
 // 3. External plugin bundles (dsh-vision, dsh-pi-adapter, etc.):
-//    loaded before dsh-tui so dsh-tui's overrides take precedence.
+//    loaded before dsh-cli so dsh-cli's overrides take precedence.
 const externalPatches: PatchOptions[] = externalPatchFiles.flatMap(f => loadOverlayPatches('dsh', f))
 
-// 4. dsh-tui: overrides base rows (persona, llm, compact, etc.),
-//    overrides working-activity cadence, inserts the dsh-tui front door + SQLite.
-const dshTuiPatchPath = resolve(workspace, 'packages/ui/dsh-tui/cordis.patch.yml')
+// 4. dsh-cli: overrides base rows (persona, llm, compact, etc.),
+//    overrides working-activity cadence, inserts the dsh-cli front door + SQLite.
+const dshTuiPatchPath = tuiPatchPath
 const dshTuiPatches: PatchOptions[] = loadOverlayPatches('dsh', dshTuiPatchPath)
 
 // 4. User layers (optional): profile-local + home-level patches.
@@ -228,7 +227,7 @@ const allPatches: PatchOptions[] = [
 healProfilesModuleFallback(INSTALL_ANCHOR)
 
 // Write the empty root config the Loader anchors on.
-writeFileSync(rootConfig, '# dsh-tui root — composed from bundle patches\n[]\n')
+writeFileSync(rootConfig, '# dsh-cli root — composed from bundle patches\n[]\n')
 
 const app: { current?: Context } = {}
 
@@ -287,7 +286,7 @@ try {
   }
 } catch (error) {
   const detail = error instanceof Error ? error.stack ?? error.message : String(error)
-  process.stderr.write(`dsh-tui boot failed: ${detail}\n`)
+  process.stderr.write(`dsh-cli boot failed: ${detail}\n`)
   // Append error to diagnostic.
   try {
     const existing = readFileSync(diagFile, 'utf8')

@@ -109,7 +109,7 @@ const channel: any = {
 const bump = () => { channel.version++; for (const cb of listeners) cb() }
 
 // 假编辑器：睡 600ms（覆盖整个交接注入窗口）后把 ' EDITED' 追加进草稿。
-const scratch = mkdtempSync(join(tmpdir(), 'dsh-tui-repro-editor-'))
+const scratch = mkdtempSync(join(tmpdir(), 'dsh-cli-repro-editor-'))
 const helper = join(scratch, 'fake-editor.cjs')
 writeFileSync(helper, `
 const fs = require('node:fs')

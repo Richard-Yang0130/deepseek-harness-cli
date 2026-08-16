@@ -117,7 +117,7 @@ const MSG = {
 const msg = key => MSG[key][lang]
 
 // React 开发构建会把每次渲染的 performance.measure() 堆进无界缓冲区导致
-// 长会话 OOM——与仓库根 dsh-tui.cmd 保持一致，强制 production。
+// 长会话 OOM——与仓库根 dsh-cli.cmd 保持一致，强制 production。
 process.env.NODE_ENV ??= 'production'
 
 const isWin = process.platform === 'win32'

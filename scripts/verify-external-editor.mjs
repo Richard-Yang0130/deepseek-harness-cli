@@ -46,9 +46,9 @@ function check(name, ok, extra = '') {
 }
 const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b)
 
-/** tmp 下 dsh-tui-prompt-* 目录计数——泄漏断言用。 */
+/** tmp 下 dsh-cli-prompt-* 目录计数——泄漏断言用。 */
 const promptDirCount = () =>
-  readdirSync(tmpdir()).filter(name => name.startsWith('dsh-tui-prompt-')).length
+  readdirSync(tmpdir()).filter(name => name.startsWith('dsh-cli-prompt-')).length
 
 // ── splitEditorCommand ────────────────────────────────────────────────
 check('split: 空白拆分带参数', eq(splitEditorCommand('code --wait'), ['code', '--wait']))
@@ -128,7 +128,7 @@ check(
 }
 
 // ── resolveWindowsShim（PATH 里有 code.cmd / code.exe 的模拟目录）─────
-const scratch = mkdtempSync(join(tmpdir(), 'dsh-tui-verify-editor-'))
+const scratch = mkdtempSync(join(tmpdir(), 'dsh-cli-verify-editor-'))
 const shimDir = join(scratch, 'shim-bin')
 mkdirSync(shimDir)
 writeFileSync(join(shimDir, 'code.cmd'), '@echo off\r\n')
@@ -255,11 +255,11 @@ useEditor(`${base} fail`)
 const aborted = await editInExternalEditor('keep me')
 check('往返: 非零退出（:cq）→ unchanged 保留原稿', aborted.kind === 'unchanged', JSON.stringify(aborted))
 
-useEditor('/nonexistent-editor-dsh-tui-xyz')
+useEditor('/nonexistent-editor-dsh-cli-xyz')
 const broken = await editInExternalEditor('draft')
 check(
   '往返: 编辑器不存在 → failed 并报出命令名',
-  broken.kind === 'failed' && broken.message.includes('nonexistent-editor-dsh-tui-xyz'),
+  broken.kind === 'failed' && broken.message.includes('nonexistent-editor-dsh-cli-xyz'),
   JSON.stringify(broken),
 )
 
@@ -287,7 +287,7 @@ if (process.platform !== 'win32') {
   )
 
   // mkdtemp 失败必须映射为 failed 结果而不是未处理拒绝。
-  process.env.TMPDIR = '/nonexistent-tmpdir-dsh-tui-xyz'
+  process.env.TMPDIR = '/nonexistent-tmpdir-dsh-cli-xyz'
   useEditor(`${base} noop`)
   const fsFailed = await editInExternalEditor('draft')
   check(

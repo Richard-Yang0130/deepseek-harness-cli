@@ -1,4 +1,4 @@
-// perf-probe.cjs — streaming-smoothness probe: real dsh-cc in a PTY, one
+// perf-probe.cjs — streaming-smoothness probe: real dsh-cli in a PTY, one
 // long-streaming user message, COMMIT_LOG captures React commit frequency
 // and slow reconciles. Usage:
 //   node scripts/perf-probe.cjs [rounds]
@@ -19,7 +19,7 @@ fs.mkdirSync('D:\\tmp', { recursive: true })
 fs.writeFileSync(COMMIT_LOG, '')
 const heapBefore = fs.existsSync(HEAP_WATCH) ? fs.statSync(HEAP_WATCH).size : 0
 
-const pty = spawn('cmd.exe', ['/c', 'dsh-tui.cmd'], {
+const pty = spawn('cmd.exe', ['/c', 'dsh-cli.cmd'], {
   name: 'xterm-256color',
   cols: 120,
   rows: 36,
@@ -27,7 +27,7 @@ const pty = spawn('cmd.exe', ['/c', 'dsh-tui.cmd'], {
   env: {
     ...process.env,
     CLAUDE_CODE_COMMIT_LOG: COMMIT_LOG,
-    DSH_CC_HEAP_WATCH: '1',
+    DSH_CLI_HEAP_WATCH: '1',
   },
 })
 

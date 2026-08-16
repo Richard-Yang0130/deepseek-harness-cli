@@ -38,8 +38,8 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { zstdCompressSync } from 'node:zlib'
 
-const root = mkdtempSync(join(tmpdir(), 'dsh-tui-index-'))
-const home = mkdtempSync(join(tmpdir(), 'dsh-tui-index-home-'))
+const root = mkdtempSync(join(tmpdir(), 'dsh-cli-index-'))
+const home = mkdtempSync(join(tmpdir(), 'dsh-cli-index-home-'))
 process.env.DSH_CLI_SESSION_ROOT = root
 process.env.HOME = home
 process.env.USERPROFILE = home
