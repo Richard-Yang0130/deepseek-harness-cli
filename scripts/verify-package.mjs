@@ -41,6 +41,27 @@ const missing = [...targets].filter(target => !packed.has(target))
 if (missing.length > 0) {
   throw new Error(`package exports missing from tarball: ${missing.join(', ')}`)
 }
+for (const required of [
+  'bin/dsh-cli.js',
+  'lib/types/index.js',
+  'cordis.patch.yml',
+  'cordis.yml',
+  'LICENSE',
+  'README.md',
+  'README.zh.md',
+]) {
+  if (!packed.has(required)) throw new Error(`release file missing from tarball: ${required}`)
+}
+for (const prefix of ['presets/', 'skills/']) {
+  if (![...packed].some(path => path.startsWith(prefix))) {
+    throw new Error(`release directory missing from tarball: ${prefix}`)
+  }
+}
+for (const forbidden of ['bin/dsh-tui.js', 'docs/superpowers/', 'test/', 'tests/', 'screenshots/']) {
+  if ([...packed].some(path => path === forbidden || path.startsWith(forbidden))) {
+    throw new Error(`forbidden release path in tarball: ${forbidden}`)
+  }
+}
 for (const presetFile of [
   'presets/liangshen/agent.cordis.yml',
   'presets/liangshen/preset.yml',
@@ -54,6 +75,14 @@ if ([...packed].some(path => path.startsWith('src/'))) {
 }
 if (packed.has('lib/invariant.js')) {
   throw new Error('npm package contains the obsolete hand-built invariant entry')
+}
+
+const workspace = process.cwd()
+for (const map of [...packed].filter(path => path.endsWith('.map'))) {
+  const content = await readFile(new URL(`../${map}`, import.meta.url), 'utf8')
+  if (content.includes(workspace)) {
+    throw new Error(`source map exposes the build workspace: ${map}`)
+  }
 }
 
 await import(new URL(`../${manifest.main}`, import.meta.url))

@@ -50,7 +50,11 @@
     "cordis.patch.yml",
     "cordis.yml",
     "presets",
-    "skills"
+    "skills",
+    "README.md",
+    "README.zh.md",
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "engines": {
     "node": "^22.19 || >=24"
@@ -78,7 +82,8 @@
     "verify:legacy-commands": "node scripts/verify-legacy-commands.mjs",
     "verify:dynamic-commands": "node scripts/verify-dynamic-command-pass-through.mjs",
     "verify:plain-reporter": "node scripts/verify-plain-reporter.mjs",
-    "verify:license": "node scripts/verify-license-notice.mjs"
+    "verify:license": "node scripts/verify-license-notice.mjs",
+    "verify:release": "node scripts/verify-release-gate.mjs"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.1",
